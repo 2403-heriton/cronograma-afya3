@@ -90,68 +90,71 @@ const FreeSlotCard: React.FC<{ slot: HorarioLivre; fullDay?: boolean }> = ({ slo
 
 const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
   const scheduleItems = useMemo((): ScheduleItem[] => {
-    const DAY_START = 7; // 07:00
-    const DAY_END = 22;  // 22:00
-    const TOLERANCE = 0.001; // Tolerância para evitar erros de ponto flutuante (aprox. 5 segundos)
-
-    const parseTime = (timeStr: string): number => {
-      if (!timeStr || !timeStr.includes(':')) return -1; // Retorna valor inválido
+    // Helper to convert HH:mm string to total minutes from midnight
+    const timeToMinutes = (timeStr: string): number => {
+      if (!timeStr || !timeStr.includes(':')) return -1;
       const [hours, minutes] = timeStr.split(':').map(Number);
       if (isNaN(hours) || isNaN(minutes)) return -1;
-      return hours + minutes / 60;
+      return hours * 60 + minutes;
     };
 
-    const formatTime = (hour: number): string => {
-        const h = Math.floor(hour);
-        const m = Math.round((hour - h) * 60);
-        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    // Helper to convert total minutes to HH:mm string
+    const minutesToTime = (totalMinutes: number): string => {
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     };
 
     if (!diaDeAula.aulas || diaDeAula.aulas.length === 0) {
         return [];
     }
     
+    // Day boundaries in minutes
+    const DAY_START_MINUTES = 7 * 60; // 07:00
+    const DAY_END_MINUTES = 22 * 60;   // 22:00
+
     const parsedAulas = diaDeAula.aulas
         .map(aula => {
             const [startStr, endStr] = aula.horario.split(' - ');
             return {
                 ...aula,
-                start: parseTime(startStr),
-                end: parseTime(endStr),
+                startMinutes: timeToMinutes(startStr),
+                endMinutes: timeToMinutes(endStr),
             };
         })
-        .filter(aula => aula.start !== -1 && aula.end !== -1) // Filtra aulas com horário inválido
-        .sort((a, b) => a.start - b.start);
+        .filter(aula => aula.startMinutes !== -1 && aula.endMinutes !== -1)
+        .sort((a, b) => a.startMinutes - b.startMinutes);
 
     const processedItems: ScheduleItem[] = [];
-    let cursor = DAY_START;
+    let cursorMinutes = DAY_START_MINUTES;
 
     parsedAulas.forEach(aula => {
-        // Adiciona um horário livre antes da aula se o intervalo for significativo
-        if (aula.start > cursor + TOLERANCE) {
+        // Check for a gap before the current class
+        if (aula.startMinutes > cursorMinutes) {
             processedItems.push({
                 tipo: 'livre',
                 turno: 'Intervalo',
-                horario: `${formatTime(cursor)} - ${formatTime(aula.start)}`,
+                horario: `${minutesToTime(cursorMinutes)} - ${minutesToTime(aula.startMinutes)}`,
             });
         }
-        // Adiciona a aula
+        // Add the class itself
         processedItems.push(aula);
-        // Avança o cursor para o final da aula atual
-        cursor = aula.end;
+        // Move the cursor to the end of the current class
+        cursorMinutes = aula.endMinutes;
     });
 
-    // Adiciona o último horário livre se o dia ainda não acabou
-    if (cursor < DAY_END - TOLERANCE) {
+    // Check for a final free slot at the end of the day
+    if (cursorMinutes < DAY_END_MINUTES) {
         processedItems.push({
             tipo: 'livre',
             turno: 'Intervalo',
-            horario: `${formatTime(cursor)} - ${formatTime(DAY_END)}`,
+            horario: `${minutesToTime(cursorMinutes)} - ${minutesToTime(DAY_END_MINUTES)}`,
         });
     }
 
     return processedItems;
   }, [diaDeAula.aulas]);
+
 
   if (diaDeAula.aulas.length === 0) {
      return (
