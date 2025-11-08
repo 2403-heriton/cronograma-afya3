@@ -92,9 +92,12 @@ const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
   const scheduleItems = useMemo((): ScheduleItem[] => {
     const DAY_START = 7; // 07:00
     const DAY_END = 22;  // 22:00
+    const TOLERANCE = 0.001; // Tolerância para evitar erros de ponto flutuante (aprox. 5 segundos)
 
     const parseTime = (timeStr: string): number => {
+      if (!timeStr || !timeStr.includes(':')) return -1; // Retorna valor inválido
       const [hours, minutes] = timeStr.split(':').map(Number);
+      if (isNaN(hours) || isNaN(minutes)) return -1;
       return hours + minutes / 60;
     };
 
@@ -117,14 +120,15 @@ const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
                 end: parseTime(endStr),
             };
         })
+        .filter(aula => aula.start !== -1 && aula.end !== -1) // Filtra aulas com horário inválido
         .sort((a, b) => a.start - b.start);
 
     const processedItems: ScheduleItem[] = [];
     let cursor = DAY_START;
 
     parsedAulas.forEach(aula => {
-        // Adiciona um horário livre antes da aula atual se houver um intervalo
-        if (aula.start > cursor) {
+        // Adiciona um horário livre antes da aula se o intervalo for significativo
+        if (aula.start > cursor + TOLERANCE) {
             processedItems.push({
                 tipo: 'livre',
                 turno: 'Intervalo',
@@ -138,7 +142,7 @@ const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
     });
 
     // Adiciona o último horário livre se o dia ainda não acabou
-    if (cursor < DAY_END) {
+    if (cursor < DAY_END - TOLERANCE) {
         processedItems.push({
             tipo: 'livre',
             turno: 'Intervalo',

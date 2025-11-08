@@ -30,33 +30,26 @@ const parseBrDate = (dateString: string): Date => {
   return date;
 };
 
-// Helper to format a JS Date object into HH:mm format, ignoring timezone.
-const formatDateToHHMM = (value: any): string => {
-    // If it's already a string in a time-like format (HH:mm or HH:mm - HH:mm), leave it.
-    if (typeof value === 'string' && /^\d{2}:\d{2}( - \d{2}:\d{2})?$/.test(value)) {
-        return value;
+// Helper to format an Excel serial number for time into HH:mm format.
+const formatExcelTime = (value: any): string => {
+    if (typeof value === 'number') {
+        // It's a serial number, format it as HH:mm using the XLSX utility
+        return XLSX.SSF.format('hh:mm', value);
     }
-    if (value instanceof Date && !isNaN(value.getTime())) {
-        const hours = String(value.getUTCHours()).padStart(2, '0');
-        const minutes = String(value.getUTCMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
-    }
+    // Fallback for values that are already strings or other types
     return String(value ?? '').trim();
 };
 
-// Helper to format a JS Date object into DD/MM/YYYY format, ignoring timezone.
-const formatDateToDDMMYYYY = (value: any): string => {
-    if (typeof value === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-        return value;
+// Helper to format an Excel serial number for date into DD/MM/YYYY format.
+const formatExcelDate = (value: any): string => {
+    if (typeof value === 'number') {
+        // It's a serial number, format it as DD/MM/YYYY using the XLSX utility
+        return XLSX.SSF.format('dd/mm/yyyy', value);
     }
-    if (value instanceof Date && !isNaN(value.getTime())) {
-        const day = String(value.getUTCDate()).padStart(2, '0');
-        const month = String(value.getUTCMonth() + 1).padStart(2, '0');
-        const year = value.getUTCFullYear();
-        return `${day}/${month}/${year}`;
-    }
+    // Fallback for values that are already strings or other types
     return String(value ?? '').trim();
 };
+
 
 // Normaliza o dia da semana para um formato padrão, tornando o sistema robusto a variações de entrada.
 const normalizeDayOfWeek = (day: string): string => {
@@ -89,14 +82,14 @@ export const loadDataFromLocalStorage = (): { aulas: AulaEntry[], events: Event[
         disciplina: String(row.disciplina ?? '').trim(),
         professor: String(row.professor ?? '').trim(),
         sala: String(row.sala ?? '').trim(),
-        horario_inicio: formatDateToHHMM(row.horario_inicio),
-        horario_fim: formatDateToHHMM(row.horario_fim),
+        horario_inicio: String(row.horario_inicio ?? '').trim(),
+        horario_fim: String(row.horario_fim ?? '').trim(),
     }));
 
     const events: Event[] = rawEvents.map((row: any) => ({
         periodo: String(row.periodo ?? '').trim(),
-        data: formatDateToDDMMYYYY(row.data),
-        horario: formatDateToHHMM(row.horario),
+        data: String(row.data ?? '').trim(),
+        horario: String(row.horario ?? '').trim(),
         disciplina: String(row.disciplina ?? '').trim(),
         tipo: String(row.tipo ?? '').trim(),
         local: String(row.local ?? '').trim(),
@@ -220,7 +213,6 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
         reader.onload = (e) => {
             try {
                 const data = e.target?.result;
-                // Leia o arquivo como binário e deixe a biblioteca xlsx lidar com ele, sem tentar adivinhar os tipos de data.
                 const workbook = XLSX.read(data, { type: 'array' });
                 
                 const aulasSheet = workbook.Sheets['Aulas'];
@@ -231,9 +223,8 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                   return reject(new Error("Aba 'Aulas' não encontrada na planilha."));
                 }
                 
-                // Use { raw: false } para obter o texto formatado como o usuário o vê no Excel.
-                // Isso resolve problemas de fuso horário e formatação.
-                const rawAulasData = XLSX.utils.sheet_to_json(aulasSheet, { raw: false });
+                // Use { raw: true } para obter os valores brutos (números para datas/horas)
+                const rawAulasData = XLSX.utils.sheet_to_json(aulasSheet, { raw: true });
                 
                 const aulasData: AulaEntry[] = rawAulasData.map((row: any): AulaEntry => ({
                     periodo: String(row.periodo ?? '').trim(),
@@ -243,22 +234,22 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     disciplina: String(row.disciplina ?? '').trim(),
                     professor: String(row.professor ?? '').trim(),
                     sala: String(row.sala ?? '').trim(),
-                    horario_inicio: String(row.horario_inicio ?? '').trim(),
-                    horario_fim: String(row.horario_fim ?? '').trim(),
+                    horario_inicio: formatExcelTime(row.horario_inicio),
+                    horario_fim: formatExcelTime(row.horario_fim),
                 }));
                 
-                let eventsData: Event[] = [];
+                let eventsRawData: any[] = [];
                 if (avaliacoesSheet) {
-                    eventsData = eventsData.concat(XLSX.utils.sheet_to_json(avaliacoesSheet, { raw: false }));
+                    eventsRawData = eventsRawData.concat(XLSX.utils.sheet_to_json(avaliacoesSheet, { raw: true }));
                 }
                 if (eventosSheet) {
-                    eventsData = eventsData.concat(XLSX.utils.sheet_to_json(eventosSheet, { raw: false }));
+                    eventsRawData = eventsRawData.concat(XLSX.utils.sheet_to_json(eventosSheet, { raw: true }));
                 }
 
-                eventsData = eventsData.map((row: any): Event => ({
+                const eventsData: Event[] = eventsRawData.map((row: any): Event => ({
                     periodo: String(row.periodo ?? '').trim(),
-                    data: String(row.data ?? '').trim(),
-                    horario: String(row.horario ?? '').trim(),
+                    data: formatExcelDate(row.data),
+                    horario: formatExcelTime(row.horario),
                     disciplina: String(row.disciplina ?? '').trim(),
                     tipo: String(row.tipo ?? '').trim(),
                     local: String(row.local ?? '').trim(),
