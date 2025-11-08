@@ -58,6 +58,20 @@ const formatDateToDDMMYYYY = (value: any): string => {
     return String(value ?? '').trim();
 };
 
+// Normaliza o dia da semana para um formato padrão, tornando o sistema robusto a variações de entrada.
+const normalizeDayOfWeek = (day: string): string => {
+    if (!day) return '';
+    const d = day.toLowerCase().replace(/[- ]/g, '').trim(); // Ex: "terça-feira" -> "terçafeira"
+    if (d.startsWith('segunda')) return 'Segunda-feira';
+    if (d.startsWith('terca') || d.startsWith('terça')) return 'Terça-feira';
+    if (d.startsWith('quarta')) return 'Quarta-feira';
+    if (d.startsWith('quinta')) return 'Quinta-feira';
+    if (d.startsWith('sexta')) return 'Sexta-feira';
+    if (d.startsWith('sabado') || d.startsWith('sábado')) return 'Sábado';
+    if (d.startsWith('domingo')) return 'Domingo';
+    return day; // Retorna o original se não houver correspondência
+};
+
 
 export const loadDataFromLocalStorage = (): { aulas: AulaEntry[], events: Event[] } => {
     const aulasData = localStorage.getItem(AULAS_KEY);
@@ -71,7 +85,7 @@ export const loadDataFromLocalStorage = (): { aulas: AulaEntry[], events: Event[
         periodo: String(row.periodo ?? '').trim(),
         modulo: String(row.modulo ?? '').trim(),
         grupo: String(row.grupo ?? '').trim(),
-        dia_semana: String(row.dia_semana ?? '').trim(),
+        dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
         disciplina: String(row.disciplina ?? '').trim(),
         professor: String(row.professor ?? '').trim(),
         sala: String(row.sala ?? '').trim(),
@@ -100,6 +114,8 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
 
     aulas.forEach(aulaEntry => {
         const dia = aulaEntry.dia_semana;
+        if (!dia) return; // Ignora aulas sem dia da semana definido
+        
         if (!scheduleMap[dia]) {
             scheduleMap[dia] = { dia: dia, aulas: [] };
         }
@@ -220,7 +236,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     periodo: String(row.periodo ?? '').trim(),
                     modulo: String(row.modulo ?? '').trim(),
                     grupo: String(row.grupo ?? '').trim(),
-                    dia_semana: String(row.dia_semana ?? '').trim(),
+                    dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
                     disciplina: String(row.disciplina ?? '').trim(),
                     professor: String(row.professor ?? '').trim(),
                     sala: String(row.sala ?? '').trim(),

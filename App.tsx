@@ -235,6 +235,7 @@ const App: React.FC = () => {
              <>
               <div className="mb-6 flex justify-center border-b border-gray-700">
                 <button
+                  key="schedule-view-btn"
                   onClick={() => setView('schedule')}
                   className={`flex items-center gap-2 px-6 py-3 font-semibold text-lg transition-colors duration-200 ${view === 'schedule' ? 'text-afya-blue border-b-2 border-afya-blue' : 'text-gray-400 hover:text-white'}`}
                 >
@@ -242,6 +243,7 @@ const App: React.FC = () => {
                   Horário de Aulas
                 </button>
                 <button
+                  key="events-view-btn"
                   onClick={() => setView('events')}
                   className={`flex items-center gap-2 px-6 py-3 font-semibold text-lg transition-colors duration-200 ${view === 'events' ? 'text-afya-pink border-b-2 border-afya-pink' : 'text-gray-400 hover:text-white'}`}
                 >

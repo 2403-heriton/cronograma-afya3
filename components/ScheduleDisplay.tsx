@@ -90,11 +90,8 @@ const FreeSlotCard: React.FC<{ slot: HorarioLivre; fullDay?: boolean }> = ({ slo
 
 const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
   const scheduleItems = useMemo((): ScheduleItem[] => {
-    const SHIFTS = [
-      { nome: "Manhã", start: 7, end: 12 },
-      { nome: "Tarde", start: 12, end: 18 },
-      { nome: "Noite", start: 18, end: 23 },
-    ];
+    const DAY_START = 7; // 07:00
+    const DAY_END = 22;  // 22:00
 
     const parseTime = (timeStr: string): number => {
       const [hours, minutes] = timeStr.split(':').map(Number);
@@ -107,11 +104,11 @@ const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     };
 
-    const processedItems: ScheduleItem[] = [];
-    const aulas = diaDeAula.aulas;
-
-    SHIFTS.forEach(shift => {
-      const aulasNoTurno = aulas
+    if (!diaDeAula.aulas || diaDeAula.aulas.length === 0) {
+        return [];
+    }
+    
+    const parsedAulas = diaDeAula.aulas
         .map(aula => {
             const [startStr, endStr] = aula.horario.split(' - ');
             return {
@@ -120,47 +117,36 @@ const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
                 end: parseTime(endStr),
             };
         })
-        .filter(aula => aula.start >= shift.start && aula.end <= shift.end)
         .sort((a, b) => a.start - b.start);
 
-      if (aulasNoTurno.length === 0) {
-        // Não adiciona nada se o turno inteiro estiver livre, o Dia Inteiro Livre cuidará disso.
-      } else {
-        let cursor = shift.start;
-        aulasNoTurno.forEach(aula => {
-          if (aula.start > cursor) {
+    const processedItems: ScheduleItem[] = [];
+    let cursor = DAY_START;
+
+    parsedAulas.forEach(aula => {
+        // Adiciona um horário livre antes da aula atual se houver um intervalo
+        if (aula.start > cursor) {
             processedItems.push({
-              tipo: 'livre',
-              turno: shift.nome,
-              horario: `${formatTime(cursor)} - ${formatTime(aula.start)}`,
+                tipo: 'livre',
+                turno: 'Intervalo',
+                horario: `${formatTime(cursor)} - ${formatTime(aula.start)}`,
             });
-          }
-          processedItems.push(aula);
-          cursor = aula.end;
-        });
-        if (cursor < shift.end) {
-          processedItems.push({
-            tipo: 'livre',
-            turno: shift.nome,
-            horario: `${formatTime(cursor)} - ${formatTime(shift.end)}`,
-          });
         }
-      }
-    });
-    
-    // Se não houver aulas no dia todo, adiciona o aviso.
-    if(processedItems.length === 0 && diaDeAula.aulas.length > 0) {
-      // Caso raro onde as aulas estão fora dos turnos definidos, apenas as mostre.
-       processedItems.push(...diaDeAula.aulas);
-    }
-    
-    // Sort final items to ensure chrono order
-    return processedItems.sort((a, b) => {
-        const aStart = parseTime(a.horario.split(' - ')[0]);
-        const bStart = parseTime(b.horario.split(' - ')[0]);
-        return aStart - bStart;
+        // Adiciona a aula
+        processedItems.push(aula);
+        // Avança o cursor para o final da aula atual
+        cursor = aula.end;
     });
 
+    // Adiciona o último horário livre se o dia ainda não acabou
+    if (cursor < DAY_END) {
+        processedItems.push({
+            tipo: 'livre',
+            turno: 'Intervalo',
+            horario: `${formatTime(cursor)} - ${formatTime(DAY_END)}`,
+        });
+    }
+
+    return processedItems;
   }, [diaDeAula.aulas]);
 
   if (diaDeAula.aulas.length === 0) {
@@ -170,7 +156,7 @@ const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
                 {diaDeAula.dia}
             </h3>
             <div className="p-4 flex-grow flex">
-                <FreeSlotCard slot={{ tipo: 'livre', turno: 'Dia Inteiro', horario: '07:00 - 23:00' }} fullDay={true} />
+                <FreeSlotCard slot={{ tipo: 'livre', turno: 'Dia Inteiro', horario: '07:00 - 22:00' }} fullDay={true} />
             </div>
         </div>
      );
