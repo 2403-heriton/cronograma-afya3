@@ -144,7 +144,7 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
 
 export const fetchSchedule = (periodo: string, selections: Omit<ModuleSelection, 'id'>[], allAulas: AulaEntry[]): Schedule | null => {
     const matchingAulas = allAulas.filter(aula => 
-        aula.periodo === periodo &&
+        String(aula.periodo) === String(periodo) &&
         selections.some(sel => sel.modulo === aula.modulo && sel.grupo === aula.grupo)
     );
 
@@ -155,7 +155,7 @@ export const fetchSchedule = (periodo: string, selections: Omit<ModuleSelection,
 
 export const getUniqueModulesForPeriod = (periodo: string, allAulas: AulaEntry[]): string[] => {
     const modulesForPeriod = allAulas
-        .filter(entry => entry.periodo === periodo)
+        .filter(entry => String(entry.periodo) === String(periodo))
         .map(entry => entry.modulo);
         
     const uniqueModules = [...new Set(modulesForPeriod)];
@@ -167,7 +167,7 @@ export const fetchEvents = (periodo: string, selections: Omit<ModuleSelection, '
     const matchingEvents = allEvents.filter(event => {
         const isGeneralEvent = event.periodo === 'Geral';
         const isPeriodSpecificEvent = 
-            event.periodo === periodo &&
+            String(event.periodo) === String(periodo) &&
             selections.some(sel => 
                 sel.modulo === event.modulo && (event.grupo === sel.grupo || event.grupo === 'Todos')
             );
@@ -188,7 +188,7 @@ export const fetchEvents = (periodo: string, selections: Omit<ModuleSelection, '
 };
 
 export const getUniquePeriods = (allAulas: AulaEntry[]): string[] => {
-    const periods = allAulas.map(entry => entry.periodo);
+    const periods = allAulas.map(entry => String(entry.periodo));
     const uniquePeriods = [...new Set(periods)];
     
     uniquePeriods.sort((a, b) => {
@@ -205,7 +205,7 @@ export const getUniquePeriods = (allAulas: AulaEntry[]): string[] => {
 
 export const getUniqueGroupsForModule = (periodo: string, modulo: string, allAulas: AulaEntry[]): string[] => {
     const groups = allAulas
-        .filter(entry => entry.periodo === periodo && entry.modulo === modulo)
+        .filter(entry => String(entry.periodo) === String(periodo) && entry.modulo === modulo)
         .map(entry => entry.grupo);
     
     const uniqueGroups = [...new Set(groups)];
@@ -220,7 +220,8 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
         reader.onload = (e) => {
             try {
                 const data = e.target?.result;
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                // Leia o arquivo como binário e deixe a biblioteca xlsx lidar com ele, sem tentar adivinhar os tipos de data.
+                const workbook = XLSX.read(data, { type: 'array' });
                 
                 const aulasSheet = workbook.Sheets['Aulas'];
                 const avaliacoesSheet = workbook.Sheets['Avaliacoes'];
@@ -230,7 +231,9 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                   return reject(new Error("Aba 'Aulas' não encontrada na planilha."));
                 }
                 
-                const rawAulasData = XLSX.utils.sheet_to_json(aulasSheet);
+                // Use { raw: false } para obter o texto formatado como o usuário o vê no Excel.
+                // Isso resolve problemas de fuso horário e formatação.
+                const rawAulasData = XLSX.utils.sheet_to_json(aulasSheet, { raw: false });
                 
                 const aulasData: AulaEntry[] = rawAulasData.map((row: any): AulaEntry => ({
                     periodo: String(row.periodo ?? '').trim(),
@@ -240,22 +243,22 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     disciplina: String(row.disciplina ?? '').trim(),
                     professor: String(row.professor ?? '').trim(),
                     sala: String(row.sala ?? '').trim(),
-                    horario_inicio: formatDateToHHMM(row.horario_inicio),
-                    horario_fim: formatDateToHHMM(row.horario_fim),
+                    horario_inicio: String(row.horario_inicio ?? '').trim(),
+                    horario_fim: String(row.horario_fim ?? '').trim(),
                 }));
                 
                 let eventsData: Event[] = [];
                 if (avaliacoesSheet) {
-                    eventsData = eventsData.concat(XLSX.utils.sheet_to_json(avaliacoesSheet));
+                    eventsData = eventsData.concat(XLSX.utils.sheet_to_json(avaliacoesSheet, { raw: false }));
                 }
                 if (eventosSheet) {
-                    eventsData = eventsData.concat(XLSX.utils.sheet_to_json(eventosSheet));
+                    eventsData = eventsData.concat(XLSX.utils.sheet_to_json(eventosSheet, { raw: false }));
                 }
 
                 eventsData = eventsData.map((row: any): Event => ({
                     periodo: String(row.periodo ?? '').trim(),
-                    data: formatDateToDDMMYYYY(row.data),
-                    horario: formatDateToHHMM(row.horario),
+                    data: String(row.data ?? '').trim(),
+                    horario: String(row.horario ?? '').trim(),
                     disciplina: String(row.disciplina ?? '').trim(),
                     tipo: String(row.tipo ?? '').trim(),
                     local: String(row.local ?? '').trim(),
