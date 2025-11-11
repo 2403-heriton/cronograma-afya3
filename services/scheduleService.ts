@@ -34,10 +34,10 @@ const parseBrDate = (dateString: string): Date => {
 // Helper to format Excel time values (serial numbers, Date objects, or strings) into HH:mm format.
 const formatExcelTime = (value: any): string => {
     if (value instanceof Date) {
-        // When cellDates is true, times are often parsed as dates on 1899-12-30 or 31.
-        // We need to extract the time part correctly, ignoring the date part.
-        const hours = String(value.getUTCHours()).padStart(2, '0');
-        const minutes = String(value.getUTCMinutes()).padStart(2, '0');
+        // Usa getHours() e getMinutes() para evitar problemas de fuso horário,
+        // garantindo que a hora seja lida como está na planilha.
+        const hours = String(value.getHours()).padStart(2, '0');
+        const minutes = String(value.getMinutes()).padStart(2, '0');
         return `${hours}:${minutes}`;
     }
     if (typeof value === 'number') {
@@ -77,21 +77,6 @@ const normalizeDayOfWeek = (day: string): string => {
     if (d.startsWith('sabado') || d.startsWith('sábado')) return 'Sábado';
     if (d.startsWith('domingo')) return 'Domingo';
     return day; // Retorna o original se não houver correspondência
-};
-
-/**
- * Extrai o tipo de aula com base no nome da sala.
- * @param sala O nome da sala (ex: "APG A", "LABORATÓRIO").
- * @returns O tipo de aula (ex: "APG", "Laboratório").
- */
-const extractClassType = (sala: string): string => {
-    const s = sala.toUpperCase();
-    if (s.includes('APG')) return 'APG';
-    if (s.includes('LAB')) return 'Laboratório';
-    if (s.includes('AUDITÓRIO')) return 'Conferência';
-    if (s.includes('TUTORIA')) return 'Tutoria';
-    // Adicione mais tipos conforme necessário
-    return 'Aula Regular'; // Fallback
 };
 
 export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], events: Event[] }> => {
@@ -158,6 +143,7 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         sala: String(row.sala ?? '').trim(),
         horario_inicio: String(row.horario_inicio ?? '').trim(),
         horario_fim: String(row.horario_fim ?? '').trim(),
+        tipo: String(row.tipo ?? '').trim(),
     }));
     
     const mapRawToEvent = (row: any): Event => ({
@@ -195,7 +181,7 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
             professor: aulaEntry.professor,
             sala: aulaEntry.sala,
             modulo: aulaEntry.modulo,
-            tipo: extractClassType(aulaEntry.sala),
+            tipo: aulaEntry.tipo,
         };
         scheduleMap[dia].aulas.push(aula);
     });
@@ -319,6 +305,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     sala: String(row.sala ?? '').trim(),
                     horario_inicio: formatExcelTime(row.horario_inicio),
                     horario_fim: formatExcelTime(row.horario_fim),
+                    tipo: String(row.tipo ?? row['tipo de aula'] ?? '').trim(),
                 }));
                 
                 const mapRowToEvent = (row: any): Event => ({

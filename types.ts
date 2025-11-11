@@ -20,6 +20,7 @@ export interface AulaEntry {
   disciplina: string;
   professor: string;
   sala: string;
+  tipo?: string;
 }
 
 export interface DiaDeAula {
