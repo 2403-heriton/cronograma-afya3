@@ -279,7 +279,14 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 
                 const aulasSheet = workbook.Sheets['Aulas'];
-                const eventosSheet = workbook.Sheets['Eventos'];
+
+                // Torna a leitura da aba de eventos mais flexível, aceitando 'Eventos' ou 'Avaliações'.
+                const eventosSheetName = workbook.SheetNames.find(name => {
+                    const lowerCaseName = name.toLowerCase().trim();
+                    return lowerCaseName === 'eventos' || lowerCaseName === 'avaliações';
+                });
+                const eventosSheet = eventosSheetName ? workbook.Sheets[eventosSheetName] : undefined;
+
 
                 if (!aulasSheet) {
                   return reject(new Error("Aba 'Aulas' não encontrada na planilha."));
@@ -321,7 +328,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     return reject(new Error("Formato incorreto na aba 'Aulas'. Verifique os cabeçalhos das colunas."));
                 }
                 if (eventosSheet && eventsData.length > 0 && (!eventsData[0].data || !eventsData[0].tipo)) {
-                   return reject(new Error("Formato incorreto na aba 'Eventos'. Verifique os cabeçalhos."));
+                   return reject(new Error(`Formato incorreto na aba '${eventosSheetName}'. Verifique os cabeçalhos.`));
                 }
 
                 localStorage.setItem(AULAS_KEY, JSON.stringify(aulasData));

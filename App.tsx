@@ -217,7 +217,7 @@ const App: React.FC = () => {
         <div className="absolute inset-0 flex flex-col justify-center items-center text-center z-20 -mt-8">
           <AfyaLogo className="w-64 h-auto mb-2" />
           <p className="text-gray-300 tracking-wide text-lg">Faculdade de Ciências Médicas - Paraiba</p>
-          <p className="text-lg md:text-xl text-gray-200 mt-4 text-shadow-md">Consulte seu cronograma de aulas e eventos.</p>
+          <p className="text-lg md:text-xl text-gray-200 mt-4 text-shadow-md">Consulte seu cronograma de aulas e avaliações.</p>
         </div>
       </div>
 
@@ -268,7 +268,7 @@ const App: React.FC = () => {
                   className={`flex items-center gap-2 px-6 py-3 font-semibold text-lg transition-colors duration-200 ${view === 'events' ? 'text-afya-pink border-b-2 border-afya-pink' : 'text-gray-400 hover:text-white'}`}
                 >
                   <CalendarIcon className="w-5 h-5" />
-                  Calendário de Eventos
+                  Calendário de Avaliações
                 </button>
               </div>
 
@@ -281,7 +281,7 @@ const App: React.FC = () => {
           )}
           {!searched && !isLoading && !error && (
              <div className="text-center text-gray-500 p-8 bg-gray-800/50 rounded-2xl shadow-sm border border-gray-700">
-                <p className="text-lg">Seu cronograma e eventos aparecerão aqui após a busca.</p>
+                <p className="text-lg">Seu cronograma e avaliações aparecerão aqui após a busca.</p>
                 <p className="text-sm mt-2">Use o formulário acima para selecionar seu período, módulo e grupo.</p>
             </div>
           )}
