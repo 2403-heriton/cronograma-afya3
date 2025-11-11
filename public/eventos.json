@@ -2,7 +2,7 @@
   {
     "periodo": "1º Período",
     "data": "20/12/2025",
-    "horario": "20:34",
+    "horario": "18:00",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
     "tipo": "Palestra",
     "local": "Auditório",
@@ -11,12 +11,12 @@
   },
   {
     "periodo": "1º Período",
-    "data": "31/12/2025",
-    "horario": "16:54",
-    "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "tipo": "Masterclass",
-    "local": "Auditório",
-    "modulo": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "grupo": "GRUPO - B"
+    "data": "21/12/2025",
+    "horario": "19:00",
+    "disciplina": "Fire Circus",
+    "tipo": "MasterClass",
+    "local": "Auditório multiuso",
+    "modulo": "-",
+    "grupo": "Geral"
   }
 ]

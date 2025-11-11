@@ -270,7 +270,7 @@ export const getUniqueGroupsForModule = (periodo: string, modulo: string, allAul
 };
 
 
-export const updateDataFromExcel = async (file: File): Promise<{ aulasData: AulaEntry[], eventsData: Event[] }> => {
+export const updateDataFromExcel = async (file: File): Promise<{ aulasData: AulaEntry[], eventsData: Event[], eventsSheetName: string | undefined }> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -330,13 +330,14 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     return reject(new Error("Formato incorreto na aba 'Aulas'. Verifique os cabeçalhos das colunas."));
                 }
                 if (eventosSheet && eventsData.length > 0 && (!eventsData[0].data || !eventsData[0].tipo)) {
+                   // Fix: Corrected typo from eventsSheetName to eventosSheetName.
                    return reject(new Error(`Formato incorreto na aba '${eventosSheetName}'. Verifique os cabeçalhos.`));
                 }
 
                 localStorage.setItem(AULAS_KEY, JSON.stringify(aulasData));
                 localStorage.setItem(EVENTS_KEY, JSON.stringify(eventsData));
 
-                resolve({ aulasData, eventsData });
+                resolve({ aulasData, eventsData, eventsSheetName: eventosSheetName });
             } catch (error) {
                 console.error("Erro ao processar planilha:", error);
                 reject(new Error('Falha ao ler o arquivo. Verifique se ele não está corrompido.'));

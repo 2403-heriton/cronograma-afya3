@@ -4,8 +4,14 @@ import UploadIcon from './icons/UploadIcon';
 import DownloadIcon from './icons/DownloadIcon';
 import type { AulaEntry, Event } from '../types';
 
+interface UploadData {
+  aulasData: AulaEntry[];
+  eventsData: Event[];
+  eventsSheetName?: string;
+}
+
 interface DataUploaderProps {
-  onUploadSuccess: (data: { aulasData: AulaEntry[], eventsData: Event[] }) => void;
+  onUploadSuccess: (data: UploadData) => void;
 }
 
 // Senha para proteger o upload. Em uma aplicação real, isso deveria ser mais seguro.
@@ -15,12 +21,14 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
     const [generatedFiles, setGeneratedFiles] = useState<{ aulas: string; eventos: string; } | null>(null);
+    const [eventsSourceSheet, setEventsSourceSheet] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const resetState = () => {
         setStatus('idle');
         setMessage('');
         setGeneratedFiles(null);
+        setEventsSourceSheet(null);
     };
 
     const downloadJson = (content: string, fileName: string) => {
@@ -42,7 +50,7 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
             return;
         }
 
-        setGeneratedFiles(null);
+        resetState();
 
         const password = window.prompt("Acesso Restrito: Digite a senha para processar a planilha.");
         
@@ -67,6 +75,7 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
                 aulas: JSON.stringify(parsedData.aulasData, null, 2),
                 eventos: JSON.stringify(parsedData.eventsData, null, 2),
             });
+            setEventsSourceSheet(parsedData.eventsSheetName || null);
 
             setStatus('success');
             setMessage('Planilha carregada! A pré-visualização foi atualizada em sua tela.');
@@ -117,7 +126,7 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
             {status === 'success' && generatedFiles && (
                 <div className="w-full mt-2 p-4 bg-gray-900/50 rounded-lg border border-gray-600 text-center space-y-4">
                      <div>
-                        <h4 className="font-semibold text-white mb-1">Atualização para Todos os Usuários</h4>
+                        <h4 className="font-semibold text-white mb-1">Arquivos Gerados</h4>
                         <p className="text-xs text-gray-400">Para disponibilizar estes dados para todos, baixe os arquivos e substitua os existentes na pasta <code>/public</code> do projeto.</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -128,13 +137,20 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
                             <DownloadIcon className="w-4 h-4" />
                             Baixar aulas.json
                         </button>
-                        <button 
-                            onClick={() => downloadJson(generatedFiles.eventos, 'eventos.json')}
-                            className="flex items-center justify-center gap-2 bg-afya-pink hover:bg-opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-                        >
-                            <DownloadIcon className="w-4 h-4" />
-                            Baixar eventos.json
-                        </button>
+                        <div>
+                             <button 
+                                onClick={() => downloadJson(generatedFiles.eventos, 'eventos.json')}
+                                className="w-full flex items-center justify-center gap-2 bg-afya-pink hover:bg-opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                            >
+                                <DownloadIcon className="w-4 h-4" />
+                                Baixar eventos.json
+                            </button>
+                            {eventsSourceSheet && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                    (Dados da aba '{eventsSourceSheet}')
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

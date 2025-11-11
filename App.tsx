@@ -10,6 +10,14 @@ import CalendarIcon from './components/icons/CalendarIcon';
 import ClockIcon from './components/icons/ClockIcon';
 import DataUploader from './components/DataUploader';
 
+// Definição da interface para os dados retornados pelo upload
+interface UploadData {
+  aulasData: AulaEntry[];
+  eventsData: Event[];
+  eventsSheetName?: string; 
+}
+
+
 const App: React.FC = () => {
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [allAulas, setAllAulas] = useState<AulaEntry[]>([]);
@@ -156,8 +164,9 @@ const App: React.FC = () => {
       if (scheduleResult && eventsResult) {
         scheduleResult.forEach(dia => {
           dia.aulas.forEach(aula => {
+            // A associação agora é feita apenas pela disciplina, tornando-a mais robusta.
             const matchingEvents = eventsResult.filter(event => 
-              event.disciplina === aula.disciplina && event.modulo === aula.modulo
+              event.disciplina === aula.disciplina
             );
             if (matchingEvents.length > 0) {
               aula.events = matchingEvents;
@@ -175,7 +184,7 @@ const App: React.FC = () => {
     }
   }, [periodo, selections, allAulas, allEvents]);
 
-  const handleUploadSuccess = (data: { aulasData: AulaEntry[], eventsData: Event[] }) => {
+  const handleUploadSuccess = (data: UploadData) => {
     setAllAulas(data.aulasData);
     setAllEvents(data.eventsData);
     setSchedule(null);

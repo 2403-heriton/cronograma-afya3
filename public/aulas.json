@@ -8,7 +8,8 @@
     "professor": "-",
     "sala": "APG A",
     "horario_inicio": "08:00",
-    "horario_fim": "10:45"
+    "horario_fim": "10:45",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -19,7 +20,8 @@
     "professor": "-",
     "sala": "APG A",
     "horario_inicio": "08:00",
-    "horario_fim": "10:45"
+    "horario_fim": "10:45",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -30,7 +32,8 @@
     "professor": "-",
     "sala": "LABORATÓRIO",
     "horario_inicio": "13:00",
-    "horario_fim": "18:00"
+    "horario_fim": "18:00",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -41,7 +44,8 @@
     "professor": "-",
     "sala": "AUDITÓRIO",
     "horario_inicio": "08:00",
-    "horario_fim": "09:40"
+    "horario_fim": "09:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -52,7 +56,8 @@
     "professor": "-",
     "sala": "APG B",
     "horario_inicio": "08:00",
-    "horario_fim": "10:45"
+    "horario_fim": "10:45",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -63,7 +68,8 @@
     "professor": "-",
     "sala": "SALA 02",
     "horario_inicio": "08:00",
-    "horario_fim": "09:40"
+    "horario_fim": "09:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -74,7 +80,8 @@
     "professor": "-",
     "sala": "SALA 02",
     "horario_inicio": "08:00",
-    "horario_fim": "09:40"
+    "horario_fim": "09:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -85,7 +92,8 @@
     "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "08:00",
-    "horario_fim": "09:40"
+    "horario_fim": "09:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -96,7 +104,8 @@
     "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "08:00",
-    "horario_fim": "09:40"
+    "horario_fim": "09:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -107,7 +116,8 @@
     "professor": "-",
     "sala": "SALA 02",
     "horario_inicio": "09:40",
-    "horario_fim": "11:20"
+    "horario_fim": "11:20",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -118,7 +128,8 @@
     "professor": "-",
     "sala": "SALA 02",
     "horario_inicio": "09:40",
-    "horario_fim": "11:20"
+    "horario_fim": "11:20",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -129,7 +140,8 @@
     "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "09:40",
-    "horario_fim": "11:20"
+    "horario_fim": "11:20",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -140,7 +152,8 @@
     "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "09:40",
-    "horario_fim": "11:20"
+    "horario_fim": "11:20",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -151,7 +164,8 @@
     "professor": "-",
     "sala": "SALA 06",
     "horario_inicio": "13:00",
-    "horario_fim": "14:40"
+    "horario_fim": "14:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -162,7 +176,8 @@
     "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "14:50",
-    "horario_fim": "16:30"
+    "horario_fim": "16:30",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -173,7 +188,8 @@
     "professor": "-",
     "sala": "SALA 06",
     "horario_inicio": "13:00",
-    "horario_fim": "14:40"
+    "horario_fim": "14:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -184,7 +200,8 @@
     "professor": "-",
     "sala": "SALA 04",
     "horario_inicio": "14:50",
-    "horario_fim": "16:30"
+    "horario_fim": "16:30",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -195,7 +212,8 @@
     "professor": "-",
     "sala": "SALA 06",
     "horario_inicio": "13:00",
-    "horario_fim": "14:40"
+    "horario_fim": "14:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -206,7 +224,8 @@
     "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "14:50",
-    "horario_fim": "16:30"
+    "horario_fim": "16:30",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -217,7 +236,8 @@
     "professor": "-",
     "sala": "SALA 06",
     "horario_inicio": "13:00",
-    "horario_fim": "14:40"
+    "horario_fim": "14:40",
+    "tipo": ""
   },
   {
     "periodo": "1º Período",
@@ -228,6 +248,7 @@
     "professor": "-",
     "sala": "SALA 04",
     "horario_inicio": "14:50",
-    "horario_fim": "16:30"
+    "horario_fim": "16:30",
+    "tipo": ""
   }
 ]
