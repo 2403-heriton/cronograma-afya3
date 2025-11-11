@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import type { Schedule, DiaDeAula, Aula } from '../types';
-import { MODULE_COLORS, DEFAULT_MODULE_COLOR } from '../constants';
+import { stringToColor } from '../services/colorService';
 import ClockIcon from './icons/ClockIcon';
 import UserIcon from './icons/UserIcon';
 import LocationIcon from './icons/LocationIcon';
@@ -8,6 +8,7 @@ import NotFoundIcon from './icons/NotFoundIcon';
 import CoffeeIcon from './icons/CoffeeIcon';
 import BookIcon from './icons/BookIcon';
 import CalendarIcon from './icons/CalendarIcon';
+import ClipboardListIcon from './icons/ClipboardListIcon';
 
 // Local types for rendering logic
 type HorarioLivre = {
@@ -26,7 +27,7 @@ const AulaInfo: React.FC<{ icon: React.ReactNode; label: string; value: string }
 );
 
 const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
-  const colorClass = aula.modulo ? MODULE_COLORS[aula.modulo] || DEFAULT_MODULE_COLOR : DEFAULT_MODULE_COLOR;
+  const color = stringToColor(aula.disciplina);
   
   const formatDate = (dateString: string) => {
     if (!dateString || typeof dateString !== 'string') return "Data Inválida";
@@ -45,11 +46,15 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
   };
   
   return (
-    <div className={`bg-gray-700/50 p-4 rounded-lg border-l-4 ${colorClass} border-t border-r border-b border-gray-600 transition-shadow duration-300 hover:shadow-md hover:bg-gray-700 flex flex-col`}>
+    <div 
+      className="bg-gray-700/50 p-4 rounded-lg border-l-4 border-t border-r border-b border-gray-600 transition-shadow duration-300 hover:shadow-md hover:bg-gray-700 flex flex-col"
+      style={{ borderLeftColor: color }}
+    >
       <div>
         <p className="font-bold text-white mb-2">{aula.disciplina}</p>
         <div className="space-y-1">
           <AulaInfo icon={<ClockIcon className="w-4 h-4" />} label="Horário" value={aula.horario} />
+          {aula.tipo && <AulaInfo icon={<ClipboardListIcon className="w-4 h-4" />} label="Tipo" value={aula.tipo} />}
           <AulaInfo icon={<UserIcon className="w-4 h-4" />} label="Professor" value={aula.professor} />
           <AulaInfo icon={<LocationIcon className="w-4 h-4" />} label="Sala" value={aula.sala} />
         </div>

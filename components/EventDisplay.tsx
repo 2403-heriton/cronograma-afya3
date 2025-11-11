@@ -15,10 +15,9 @@ const EventInfo: React.FC<{ icon: React.ReactNode; label: string; value: string 
 );
 
 const EventCard: React.FC<{ event: Event }> = ({ event }) => {
-  // FIX: Use dynamic color generation for the border instead of a hardcoded class.
   const color = stringToColor(event.disciplina);
   return (
-    <div
+    <div 
       className="bg-gray-700/50 p-4 rounded-lg border-l-4 border-t border-r border-b border-gray-600 transition-shadow duration-300 hover:shadow-md hover:bg-gray-700"
       style={{ borderLeftColor: color }}
     >
@@ -32,9 +31,7 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   );
 };
 
-const AssessmentDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => {
-  // FIX: Explicitly type the Array.reduce generic to ensure correct type inference for the accumulator.
-  // This resolves an issue where `eventsOnDate` was being inferred as `unknown`.
+const EventDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => {
   const groupedEvents = useMemo(() => {
     if (!events) return {};
     return events.reduce<Record<string, Event[]>>((acc, event) => {
@@ -47,13 +44,13 @@ const AssessmentDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => 
     }, {});
   }, [events]);
 
-  if (!events) {
+  if (!events || events.length === 0) {
     return (
       <div className="text-center text-gray-400 p-8 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
         <NotFoundIcon className="w-16 h-16 mx-auto text-gray-500 mb-4" />
-        <p className="text-xl font-semibold text-white">Nenhuma avaliação encontrada.</p>
+        <p className="text-xl font-semibold text-white">Nenhum evento encontrado.</p>
         <p className="text-md mt-1 text-gray-400">
-           Use o botão "Atualizar Dados via Planilha" para carregar as avaliações.
+           Verifique os filtros ou use o botão "Atualizar Dados via Planilha" para carregar novos eventos.
         </p>
       </div>
     );
@@ -80,9 +77,15 @@ const AssessmentDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => 
     }).format(date);
   };
 
+  const sortedDates = Object.keys(groupedEvents).sort((a, b) => {
+      const dateA = new Date(a.split('/').reverse().join('-'));
+      const dateB = new Date(b.split('/').reverse().join('-'));
+      return dateA.getTime() - dateB.getTime();
+  });
+
   return (
     <div className="space-y-8">
-      {Object.entries(groupedEvents).map(([date, eventsOnDate], index) => (
+      {sortedDates.map((date, index) => (
         <div key={date} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
           <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
             <h3 className="bg-afya-pink/80 text-white text-lg font-semibold p-4 flex items-center gap-3">
@@ -90,7 +93,7 @@ const AssessmentDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => 
               {formatDate(date)}
             </h3>
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {eventsOnDate.map((event, idx) => (
+              {groupedEvents[date].map((event, idx) => (
                 <EventCard key={`${event.disciplina}-${idx}`} event={event} />
               ))}
             </div>
@@ -101,4 +104,4 @@ const AssessmentDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => 
   );
 };
 
-export default AssessmentDisplay;
+export default EventDisplay;

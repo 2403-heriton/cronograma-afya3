@@ -79,6 +79,20 @@ const normalizeDayOfWeek = (day: string): string => {
     return day; // Retorna o original se não houver correspondência
 };
 
+/**
+ * Extrai o tipo de aula com base no nome da sala.
+ * @param sala O nome da sala (ex: "APG A", "LABORATÓRIO").
+ * @returns O tipo de aula (ex: "APG", "Laboratório").
+ */
+const extractClassType = (sala: string): string => {
+    const s = sala.toUpperCase();
+    if (s.includes('APG')) return 'APG';
+    if (s.includes('LAB')) return 'Laboratório';
+    if (s.includes('AUDITÓRIO')) return 'Conferência';
+    if (s.includes('TUTORIA')) return 'Tutoria';
+    // Adicione mais tipos conforme necessário
+    return 'Aula Regular'; // Fallback
+};
 
 export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], events: Event[] }> => {
     let rawAulas: any[] = [];
@@ -181,6 +195,7 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
             professor: aulaEntry.professor,
             sala: aulaEntry.sala,
             modulo: aulaEntry.modulo,
+            tipo: extractClassType(aulaEntry.sala),
         };
         scheduleMap[dia].aulas.push(aula);
     });

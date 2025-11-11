@@ -5,6 +5,7 @@ export interface Aula {
   professor: string;
   sala: string;
   modulo: string;
+  tipo?: string; // Adicionado para o tipo de aula (APG, Lab, etc.)
   events?: Event[];
 }
 
