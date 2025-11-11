@@ -176,7 +176,6 @@ const App: React.FC = () => {
   }, [periodo, selections, allAulas, allEvents]);
 
   const handleUploadSuccess = (data: { aulasData: AulaEntry[], eventsData: Event[] }) => {
-    setIsInitializing(true);
     setAllAulas(data.aulasData);
     setAllEvents(data.eventsData);
     setSchedule(null);
@@ -194,7 +193,6 @@ const App: React.FC = () => {
         setAvailablePeriods([]);
         setPeriodo('');
     }
-    setIsInitializing(false);
   };
   
   if (isInitializing) {

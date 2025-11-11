@@ -1,4 +1,5 @@
 import type { Schedule, DiaDeAula, ModuleSelection, Aula, Event, AulaEntry } from "../types";
+import { defaultAulas, defaultEvents } from "./initialData";
 
 // Permite o uso da biblioteca XLSX carregada via tag de script
 declare var XLSX: any;
@@ -30,23 +31,36 @@ const parseBrDate = (dateString: string): Date => {
   return date;
 };
 
-// Helper to format an Excel serial number for time into HH:mm format.
+// Helper to format Excel time values (serial numbers, Date objects, or strings) into HH:mm format.
 const formatExcelTime = (value: any): string => {
+    if (value instanceof Date) {
+        // When cellDates is true, times are often parsed as dates on 1899-12-30 or 31.
+        // We need to extract the time part correctly, ignoring the date part.
+        const hours = String(value.getUTCHours()).padStart(2, '0');
+        const minutes = String(value.getUTCMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
     if (typeof value === 'number') {
-        // It's a serial number, format it as HH:mm using the XLSX utility
+        // Fallback for when the value is a number but not parsed as a date.
         return XLSX.SSF.format('hh:mm', value);
     }
-    // Fallback for values that are already strings or other types
+    // Fallback for values that are already strings or other types.
     return String(value ?? '').trim();
 };
 
-// Helper to format an Excel serial number for date into DD/MM/YYYY format.
+// Helper to format Excel date values (serial numbers, Date objects, or strings) into DD/MM/YYYY format.
 const formatExcelDate = (value: any): string => {
+    if (value instanceof Date) {
+        const day = String(value.getUTCDate()).padStart(2, '0');
+        const month = String(value.getUTCMonth() + 1).padStart(2, '0'); // getUTCMonth is 0-indexed
+        const year = value.getUTCFullYear();
+        return `${day}/${month}/${year}`;
+    }
     if (typeof value === 'number') {
-        // It's a serial number, format it as DD/MM/YYYY using the XLSX utility
+        // Fallback for when the value is a number but not parsed as a date.
         return XLSX.SSF.format('dd/mm/yyyy', value);
     }
-    // Fallback for values that are already strings or other types
+    // Fallback for values that are already strings or other types.
     return String(value ?? '').trim();
 };
 
@@ -67,39 +81,54 @@ const normalizeDayOfWeek = (day: string): string => {
 
 
 export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], events: Event[] }> => {
-    const aulasData = localStorage.getItem(AULAS_KEY);
-    const eventsData = localStorage.getItem(EVENTS_KEY);
+    let rawAulas: any[] = [];
+    let rawEvents: any[] = [];
 
-    let rawAulas = aulasData ? JSON.parse(aulasData) : [];
-    let rawEvents = eventsData ? JSON.parse(eventsData) : [];
-
-    // Se o localStorage estiver vazio (ou parcialmente), busca dos arquivos públicos
-    if (rawAulas.length === 0 || rawEvents.length === 0) {
-        try {
-            // Adiciona um parâmetro para evitar problemas de cache do navegador ao buscar os arquivos JSON.
-            const cacheBuster = `?t=${Date.now()}`;
-            const [aulasResponse, eventsResponse] = await Promise.all([
-                fetch(`/aulas.json${cacheBuster}`),
-                fetch(`/eventos.json${cacheBuster}`),
-            ]);
-            
-            if (!aulasResponse.ok || !eventsResponse.ok) {
-                throw new Error('Falha ao buscar os dados iniciais.');
-            }
-
+    // Prioritize fetching data from the network to ensure users get the latest version.
+    try {
+        const cacheBuster = `?t=${Date.now()}`;
+        const [aulasResponse, eventsResponse] = await Promise.all([
+            fetch(`/aulas.json${cacheBuster}`),
+            fetch(`/eventos.json${cacheBuster}`),
+        ]);
+        
+        if (aulasResponse.ok && eventsResponse.ok) {
             const aulasJson = await aulasResponse.json();
             const eventsJson = await eventsResponse.json();
             
             rawAulas = aulasJson;
             rawEvents = eventsJson;
 
-            // Salva os dados buscados no localStorage para a próxima vez
+            // Update localStorage with the latest data for offline fallback.
             localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
             localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
-        } catch (error) {
-            console.error("Erro ao buscar dados iniciais:", error);
-            // Retorna arrays vazios se a busca falhar, para que o app não quebre
-            return { aulas: [], events: [] };
+        } else {
+             // If the server returns an error (e.g., 404), trigger the catch block.
+             throw new Error(`Server fetch failed. Status: Aulas ${aulasResponse.status}, Eventos ${eventsResponse.status}`);
+        }
+    } catch (error) {
+        // If the network request fails (e.g., offline, CORS), fall back to localStorage.
+        console.warn("Network fetch failed, attempting to load from local cache.", error);
+        
+        const aulasData = localStorage.getItem(AULAS_KEY);
+        const eventsData = localStorage.getItem(EVENTS_KEY);
+
+        if (aulasData && eventsData) {
+            rawAulas = JSON.parse(aulasData);
+            rawEvents = JSON.parse(eventsData);
+        } else {
+            // If both network and localStorage fail, use the embedded default data as a last resort.
+            console.warn("Local cache is also unavailable. Using embedded default data as fallback.");
+            rawAulas = defaultAulas;
+            rawEvents = defaultEvents;
+
+            // And populate the cache with this default data for subsequent offline loads.
+            try {
+                localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
+                localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
+            } catch (storageError) {
+                console.error("Failed to populate localStorage with fallback data.", storageError);
+            }
         }
     }
 
@@ -246,7 +275,8 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
         reader.onload = (e) => {
             try {
                 const data = e.target?.result;
-                const workbook = XLSX.read(data, { type: 'array' });
+                // A opção `cellDates: true` é crucial para interpretar corretamente datas e horas.
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 
                 const aulasSheet = workbook.Sheets['Aulas'];
                 const eventosSheet = workbook.Sheets['Eventos'];
@@ -255,7 +285,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                   return reject(new Error("Aba 'Aulas' não encontrada na planilha."));
                 }
                 
-                const rawAulasData = XLSX.utils.sheet_to_json(aulasSheet, { raw: true });
+                const rawAulasData = XLSX.utils.sheet_to_json(aulasSheet);
                 
                 const aulasData: AulaEntry[] = rawAulasData.map((row: any): AulaEntry => ({
                     periodo: String(row.periodo ?? '').trim(),
@@ -282,7 +312,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
 
                 let eventsData: Event[] = [];
                 if (eventosSheet) {
-                    const rawEventsData = XLSX.utils.sheet_to_json(eventosSheet, { raw: true });
+                    const rawEventsData = XLSX.utils.sheet_to_json(eventosSheet);
                     eventsData = rawEventsData.map(mapRowToEvent);
                 }
 
