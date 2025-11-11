@@ -66,12 +66,41 @@ const normalizeDayOfWeek = (day: string): string => {
 };
 
 
-export const loadDataFromLocalStorage = (): { aulas: AulaEntry[], events: Event[] } => {
+export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], events: Event[] }> => {
     const aulasData = localStorage.getItem(AULAS_KEY);
     const eventsData = localStorage.getItem(EVENTS_KEY);
 
-    const rawAulas = aulasData ? JSON.parse(aulasData) : [];
-    const rawEvents = eventsData ? JSON.parse(eventsData) : [];
+    let rawAulas = aulasData ? JSON.parse(aulasData) : [];
+    let rawEvents = eventsData ? JSON.parse(eventsData) : [];
+
+    // Se o localStorage estiver vazio, busca dos arquivos públicos
+    if (rawAulas.length === 0 || rawEvents.length === 0) {
+        try {
+            const [aulasResponse, eventsResponse] = await Promise.all([
+                fetch('/aulas.json'),
+                fetch('/eventos.json')
+            ]);
+            
+            if (!aulasResponse.ok || !eventsResponse.ok) {
+                throw new Error('Falha ao buscar os dados iniciais.');
+            }
+
+            const aulasJson = await aulasResponse.json();
+            const eventsJson = await eventsResponse.json();
+            
+            rawAulas = aulasJson;
+            rawEvents = eventsJson;
+
+            // Salva os dados buscados no localStorage para a próxima vez
+            localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
+            localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
+        } catch (error) {
+            console.error("Erro ao buscar dados iniciais:", error);
+            // Retorna arrays vazios se a busca falhar, para que o app não quebre
+            return { aulas: [], events: [] };
+        }
+    }
+
 
     // Sanitize data on load to ensure type consistency, fixing issues with old stored data.
     const aulas: AulaEntry[] = rawAulas.map((row: any) => ({

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { fetchSchedule, getUniqueModulesForPeriod, fetchEvents, loadDataFromLocalStorage, getUniquePeriods, getUniqueGroupsForModule } from './services/scheduleService';
+import { fetchSchedule, getUniqueModulesForPeriod, fetchEvents, initializeAndLoadData, getUniquePeriods, getUniqueGroupsForModule } from './services/scheduleService';
 import type { Schedule, ModuleSelection, Event, AulaEntry } from './types';
 import ScheduleForm from './components/ScheduleForm';
 import ScheduleDisplay from './components/ScheduleDisplay';
@@ -11,6 +11,7 @@ import ClockIcon from './components/icons/ClockIcon';
 import DataUploader from './components/DataUploader';
 
 const App: React.FC = () => {
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [allAulas, setAllAulas] = useState<AulaEntry[]>([]);
   const [allEvents, setAllEvents] = useState<Event[]>([]);
 
@@ -36,19 +37,32 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Carrega os dados do localStorage na inicialização e define as opções dinâmicas
+  // Carrega os dados do localStorage ou de arquivos na inicialização
   useEffect(() => {
-    const { aulas, events } = loadDataFromLocalStorage();
-    setAllAulas(aulas);
-    setAllEvents(events);
+    const loadInitialData = async () => {
+        try {
+            const { aulas, events } = await initializeAndLoadData();
+            setAllAulas(aulas);
+            setAllEvents(events);
 
-    if (aulas.length > 0) {
-        const periods = getUniquePeriods(aulas);
-        setAvailablePeriods(periods);
-        if (periods.length > 0) {
-            setPeriodo(periods[0]);
+            if (aulas.length > 0) {
+                const periods = getUniquePeriods(aulas);
+                setAvailablePeriods(periods);
+                if (periods.length > 0) {
+                    setPeriodo(periods[0]);
+                }
+            } else {
+                 setError("Nenhum dado de aulas encontrado. Por favor, use o modo de administrador para carregar uma planilha.");
+            }
+        } catch (err) {
+            console.error("Erro ao carregar dados iniciais:", err);
+            setError("Não foi possível carregar os dados. Tente atualizar a página.");
+        } finally {
+            setIsInitializing(false);
         }
-    }
+    };
+    
+    loadInitialData();
   }, []);
 
   // Atualiza módulos e seleções quando o período ou os dados das aulas mudam
@@ -161,17 +175,16 @@ const App: React.FC = () => {
   }, [periodo, selections, allAulas, allEvents]);
 
   const handleUploadSuccess = (data: { aulasData: AulaEntry[], eventsData: Event[] }) => {
+    setIsInitializing(true);
     setAllAulas(data.aulasData);
     setAllEvents(data.eventsData);
     setSchedule(null);
     setEvents(null);
     setSearched(false);
     setError(null);
-    // Recarrega a página sem o parâmetro de admin para sair do modo de upload
     window.history.replaceState({}, document.title, window.location.pathname);
     setIsAdmin(false);
 
-    // Re-inicializa o estado do período após o upload
     if (data.aulasData.length > 0) {
         const periods = getUniquePeriods(data.aulasData);
         setAvailablePeriods(periods);
@@ -182,8 +195,18 @@ const App: React.FC = () => {
         setAvailablePeriods([]);
         setPeriodo('');
     }
+    setIsInitializing(false);
   };
-
+  
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center text-white bg-gray-900">
+          <SpinnerIcon className="w-16 h-16 mb-4" />
+          <p className="text-xl font-semibold">Carregando dados...</p>
+          <p className="text-md text-gray-400">Preparando o ambiente para você.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen font-sans flex flex-col bg-gray-900">
@@ -259,7 +282,7 @@ const App: React.FC = () => {
               )}
             </>
           )}
-          {!searched && !isLoading && (
+          {!searched && !isLoading && !error && (
              <div className="text-center text-gray-500 p-8 bg-gray-800/50 rounded-2xl shadow-sm border border-gray-700">
                 <p className="text-lg">Seu cronograma e eventos aparecerão aqui após a busca.</p>
                 <p className="text-sm mt-2">Use o formulário acima para selecionar seu período, módulo e grupo.</p>
