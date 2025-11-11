@@ -73,12 +73,14 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
     let rawAulas = aulasData ? JSON.parse(aulasData) : [];
     let rawEvents = eventsData ? JSON.parse(eventsData) : [];
 
-    // Se o localStorage estiver vazio, busca dos arquivos públicos
+    // Se o localStorage estiver vazio (ou parcialmente), busca dos arquivos públicos
     if (rawAulas.length === 0 || rawEvents.length === 0) {
         try {
+            // Adiciona um parâmetro para evitar problemas de cache do navegador ao buscar os arquivos JSON.
+            const cacheBuster = `?t=${Date.now()}`;
             const [aulasResponse, eventsResponse] = await Promise.all([
-                fetch('/aulas.json'),
-                fetch('/eventos.json')
+                fetch(`/aulas.json${cacheBuster}`),
+                fetch(`/eventos.json${cacheBuster}`),
             ]);
             
             if (!aulasResponse.ok || !eventsResponse.ok) {
@@ -114,8 +116,8 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         horario_inicio: String(row.horario_inicio ?? '').trim(),
         horario_fim: String(row.horario_fim ?? '').trim(),
     }));
-
-    const events: Event[] = rawEvents.map((row: any) => ({
+    
+    const mapRawToEvent = (row: any): Event => ({
         periodo: String(row.periodo ?? '').trim(),
         data: String(row.data ?? '').trim(),
         horario: String(row.horario ?? '').trim(),
@@ -124,7 +126,9 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         local: String(row.local ?? '').trim(),
         modulo: String(row.modulo ?? '').trim(),
         grupo: String(row.grupo ?? '').trim(),
-    }));
+    });
+
+    const events: Event[] = rawEvents.map(mapRawToEvent);
 
     return { aulas, events };
 }
@@ -245,14 +249,12 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 const workbook = XLSX.read(data, { type: 'array' });
                 
                 const aulasSheet = workbook.Sheets['Aulas'];
-                const avaliacoesSheet = workbook.Sheets['Avaliacoes'];
                 const eventosSheet = workbook.Sheets['Eventos'];
 
                 if (!aulasSheet) {
                   return reject(new Error("Aba 'Aulas' não encontrada na planilha."));
                 }
                 
-                // Use { raw: true } para obter os valores brutos (números para datas/horas)
                 const rawAulasData = XLSX.utils.sheet_to_json(aulasSheet, { raw: true });
                 
                 const aulasData: AulaEntry[] = rawAulasData.map((row: any): AulaEntry => ({
@@ -267,15 +269,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     horario_fim: formatExcelTime(row.horario_fim),
                 }));
                 
-                let eventsRawData: any[] = [];
-                if (avaliacoesSheet) {
-                    eventsRawData = eventsRawData.concat(XLSX.utils.sheet_to_json(avaliacoesSheet, { raw: true }));
-                }
-                if (eventosSheet) {
-                    eventsRawData = eventsRawData.concat(XLSX.utils.sheet_to_json(eventosSheet, { raw: true }));
-                }
-
-                const eventsData: Event[] = eventsRawData.map((row: any): Event => ({
+                const mapRowToEvent = (row: any): Event => ({
                     periodo: String(row.periodo ?? '').trim(),
                     data: formatExcelDate(row.data),
                     horario: formatExcelTime(row.horario),
@@ -284,14 +278,20 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     local: String(row.local ?? '').trim(),
                     modulo: String(row.modulo ?? '').trim(),
                     grupo: String(row.grupo ?? '').trim(),
-                }));
+                });
+
+                let eventsData: Event[] = [];
+                if (eventosSheet) {
+                    const rawEventsData = XLSX.utils.sheet_to_json(eventosSheet, { raw: true });
+                    eventsData = rawEventsData.map(mapRowToEvent);
+                }
 
                 // Validação de cabeçalhos
                 if (aulasData.length > 0 && (!aulasData[0].dia_semana || !aulasData[0].horario_inicio)) {
                     return reject(new Error("Formato incorreto na aba 'Aulas'. Verifique os cabeçalhos das colunas."));
                 }
-                if (eventsData.length > 0 && (!eventsData[0].data || !eventsData[0].tipo)) {
-                   return reject(new Error("Formato incorreto na aba 'Avaliacoes' ou 'Eventos'. Verifique os cabeçalhos."));
+                if (eventosSheet && eventsData.length > 0 && (!eventsData[0].data || !eventsData[0].tipo)) {
+                   return reject(new Error("Formato incorreto na aba 'Eventos'. Verifique os cabeçalhos."));
                 }
 
                 localStorage.setItem(AULAS_KEY, JSON.stringify(aulasData));

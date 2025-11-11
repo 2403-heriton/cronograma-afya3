@@ -1,15 +1,5 @@
 [
   {
-    "periodo": "1",
-    "data": "15/08/2024",
-    "horario": "09:00",
-    "disciplina": "Bases Morfológicas I",
-    "tipo": "Prova Parcial",
-    "local": "Anfiteatro",
-    "modulo": "Módulo I",
-    "grupo": "Todos"
-  },
-  {
     "periodo": "Geral",
     "data": "20/08/2024",
     "horario": "18:00",
@@ -18,6 +8,16 @@
     "local": "Auditório Principal",
     "modulo": "N/A",
     "grupo": "N/A"
+  },
+  {
+    "periodo": "1",
+    "data": "15/08/2024",
+    "horario": "09:00",
+    "disciplina": "Bases Morfológicas I",
+    "tipo": "Prova Parcial",
+    "local": "Anfiteatro",
+    "modulo": "Módulo I",
+    "grupo": "Todos"
   },
   {
     "periodo": "2",

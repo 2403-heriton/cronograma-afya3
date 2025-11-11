@@ -29,16 +29,18 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
 };
 
 const AssessmentDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => {
+  // FIX: Explicitly type the Array.reduce generic to ensure correct type inference for the accumulator.
+  // This resolves an issue where `eventsOnDate` was being inferred as `unknown`.
   const groupedEvents = useMemo(() => {
     if (!events) return {};
-    return events.reduce((acc, event) => {
+    return events.reduce<Record<string, Event[]>>((acc, event) => {
       const date = event.data;
       if (!acc[date]) {
         acc[date] = [];
       }
       acc[date].push(event);
       return acc;
-    }, {} as Record<string, Event[]>);
+    }, {});
   }, [events]);
 
   if (!events) {

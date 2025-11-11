@@ -150,6 +150,7 @@ const App: React.FC = () => {
     try {
       const selectionsPayload = selections.map(({ id, ...rest }) => rest);
       const scheduleResult = fetchSchedule(periodo, selectionsPayload, allAulas);
+      
       const eventsResult = fetchEvents(periodo, selectionsPayload, allEvents);
 
       if (scheduleResult && eventsResult) {
@@ -182,8 +183,6 @@ const App: React.FC = () => {
     setEvents(null);
     setSearched(false);
     setError(null);
-    window.history.replaceState({}, document.title, window.location.pathname);
-    setIsAdmin(false);
 
     if (data.aulasData.length > 0) {
         const periods = getUniquePeriods(data.aulasData);
