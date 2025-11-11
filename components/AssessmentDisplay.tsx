@@ -47,9 +47,9 @@ const AssessmentDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => 
     return (
       <div className="text-center text-gray-400 p-8 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
         <NotFoundIcon className="w-16 h-16 mx-auto text-gray-500 mb-4" />
-        <p className="text-xl font-semibold text-white">Nenhum evento encontrado.</p>
+        <p className="text-xl font-semibold text-white">Nenhuma avaliação encontrada.</p>
         <p className="text-md mt-1 text-gray-400">
-           Use o botão "Atualizar Dados via Planilha" para carregar os eventos.
+           Use o botão "Atualizar Dados via Planilha" para carregar as avaliações.
         </p>
       </div>
     );

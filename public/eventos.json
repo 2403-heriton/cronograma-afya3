@@ -1,32 +1,12 @@
 [
   {
-    "periodo": "Geral",
-    "data": "20/08/2024",
-    "horario": "18:00",
-    "disciplina": "Palestra",
-    "tipo": "Abertura da Liga de Cardiologia",
-    "local": "Auditório Principal",
-    "modulo": "N/A",
-    "grupo": "N/A"
-  },
-  {
-    "periodo": "1",
-    "data": "15/08/2024",
-    "horario": "09:00",
-    "disciplina": "Bases Morfológicas I",
-    "tipo": "Prova Parcial",
-    "local": "Anfiteatro",
-    "modulo": "Módulo I",
-    "grupo": "Todos"
-  },
-  {
-    "periodo": "2",
-    "data": "25/08/2024",
-    "horario": "14:00",
-    "disciplina": "Habilidades Médicas I",
-    "tipo": "Avaliação Prática",
-    "local": "Centro de Habilidades",
-    "modulo": "Módulo III",
-    "grupo": "C"
+    "periodo": "1º Período",
+    "data": "20/12/2025",
+    "horario": "20:34",
+    "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
+    "tipo": "Palestra",
+    "local": "Auditório",
+    "modulo": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
+    "grupo": "GRUPO - B"
   }
 ]
