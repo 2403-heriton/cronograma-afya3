@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import type { Schedule, DiaDeAula, Aula } from '../types';
 import { stringToColor } from '../services/colorService';
 import ClockIcon from './icons/ClockIcon';
-import UserIcon from './icons/UserIcon';
 import LocationIcon from './icons/LocationIcon';
 import NotFoundIcon from './icons/NotFoundIcon';
 import CoffeeIcon from './icons/CoffeeIcon';
@@ -55,7 +54,6 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
         <div className="space-y-1">
           <AulaInfo icon={<ClockIcon className="w-4 h-4" />} label="Horário" value={aula.horario} />
           {aula.tipo && <AulaInfo icon={<ClipboardListIcon className="w-4 h-4" />} label="Tipo" value={aula.tipo} />}
-          <AulaInfo icon={<UserIcon className="w-4 h-4" />} label="Professor" value={aula.professor} />
           <AulaInfo icon={<LocationIcon className="w-4 h-4" />} label="Sala" value={aula.sala} />
         </div>
       </div>

@@ -2,7 +2,6 @@
 export interface Aula {
   horario: string;
   disciplina: string;
-  professor: string;
   sala: string;
   modulo: string;
   tipo?: string; // Adicionado para o tipo de aula (APG, Lab, etc.)
@@ -18,7 +17,6 @@ export interface AulaEntry {
   horario_inicio: string;
   horario_fim: string;
   disciplina: string;
-  professor: string;
   sala: string;
   tipo?: string;
 }

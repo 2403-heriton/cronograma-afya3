@@ -9,7 +9,6 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "10:00",
     "disciplina": "Bases Morfológicas I",
-    "professor": "Prof. Silva",
     "sala": "Lab Morfo 1"
   },
   {
@@ -20,7 +19,6 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "10:00",
     "horario_fim": "12:00",
     "disciplina": "Introdução ao Estudo da Medicina I",
-    "professor": "Prof. Costa",
     "sala": "Sala 101"
   },
   {
@@ -31,7 +29,6 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "10:00",
     "disciplina": "Introdução ao Estudo da Medicina I",
-    "professor": "Prof. Costa",
     "sala": "Sala 102"
   },
   {
@@ -42,7 +39,6 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "10:00",
     "horario_fim": "12:00",
     "disciplina": "Bases Morfológicas I",
-    "professor": "Prof. Silva",
     "sala": "Lab Morfo 2"
   },
    {
@@ -53,7 +49,6 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "10:00",
     "disciplina": "Bases Celulares e Moleculares I",
-    "professor": "Prof. Almeida",
     "sala": "Lab BioCel"
   },
   {
@@ -64,7 +59,6 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "14:00",
     "horario_fim": "16:00",
     "disciplina": "Bases Morfológicas II",
-    "professor": "Prof. Pereira",
     "sala": "Lab Morfo 3"
   },
   {
@@ -75,7 +69,6 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "09:00",
     "horario_fim": "11:00",
     "disciplina": "Habilidades Médicas I",
-    "professor": "Prof. Souza",
     "sala": "Sala 201"
   }
 ];

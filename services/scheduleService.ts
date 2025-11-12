@@ -79,6 +79,18 @@ const normalizeDayOfWeek = (day: string): string => {
     return day; // Retorna o original se não houver correspondência
 };
 
+// Normaliza a string do período para apenas o número, tornando a correspondência robusta.
+const normalizePeriodo = (periodo: string): string => {
+    if (!periodo) return '';
+    const match = String(periodo).match(/\d+/);
+    if (match) {
+        return match[0];
+    }
+    // Retorna a string em minúsculas se for algo como "Geral"
+    return String(periodo).trim().toLowerCase();
+}
+
+
 export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], events: Event[] }> => {
     let rawAulas: any[] = [];
     let rawEvents: any[] = [];
@@ -139,7 +151,6 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         grupo: String(row.grupo ?? '').trim(),
         dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
         disciplina: String(row.disciplina ?? '').trim(),
-        professor: String(row.professor ?? '').trim(),
         sala: String(row.sala ?? '').trim(),
         horario_inicio: String(row.horario_inicio ?? '').trim(),
         horario_fim: String(row.horario_fim ?? '').trim(),
@@ -178,7 +189,6 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
         const aula: Aula = {
             horario: `${aulaEntry.horario_inicio} - ${aulaEntry.horario_fim}`,
             disciplina: aulaEntry.disciplina,
-            professor: aulaEntry.professor,
             sala: aulaEntry.sala,
             modulo: aulaEntry.modulo,
             tipo: aulaEntry.tipo,
@@ -220,14 +230,27 @@ export const getUniqueModulesForPeriod = (periodo: string, allAulas: AulaEntry[]
 };
 
 export const fetchEvents = (periodo: string, selections: Omit<ModuleSelection, 'id'>[], allEvents: Event[]): Event[] | null => {
+    const normalizedSelectedPeriodo = normalizePeriodo(periodo);
+    
     const matchingEvents = allEvents.filter(event => {
-        const isGeneralEvent = event.periodo === 'Geral';
-        const isPeriodSpecificEvent = 
-            String(event.periodo) === String(periodo) &&
-            selections.some(sel => 
-                sel.modulo === event.modulo && (event.grupo === sel.grupo || event.grupo === 'Todos')
+        const normalizedEventPeriodo = normalizePeriodo(event.periodo);
+        
+        // Evento é "Geral" se o período dele for 'geral'.
+        const isGeneralEvent = normalizedEventPeriodo === 'geral';
+
+        // Evento é específico do período se o período normalizado corresponder.
+        const isPeriodMatch = normalizedEventPeriodo === normalizedSelectedPeriodo;
+
+        let isSelectionMatch = false;
+        if (isPeriodMatch) {
+            // Para eventos do período, verifica se corresponde a alguma seleção do usuário.
+            isSelectionMatch = selections.some(sel => 
+                (sel.modulo === event.modulo || event.modulo === '-' || event.modulo === 'Todos') && 
+                (event.grupo === sel.grupo || event.grupo === 'Todos' || event.grupo === 'Geral')
             );
-        return isPeriodSpecificEvent || isGeneralEvent;
+        }
+        
+        return isGeneralEvent || isSelectionMatch;
     });
 
     if (matchingEvents.length === 0) return null;
@@ -276,32 +299,39 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
         reader.onload = (e) => {
             try {
                 const data = e.target?.result;
-                // A opção `cellDates: true` é crucial para interpretar corretamente datas e horas.
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 
                 const aulasSheet = workbook.Sheets['Aulas'];
-
-                // Torna a leitura da aba de eventos mais flexível, aceitando 'Eventos' ou 'Avaliações'.
                 const eventosSheetName = workbook.SheetNames.find(name => {
                     const lowerCaseName = name.toLowerCase().trim();
                     return lowerCaseName === 'eventos' || lowerCaseName === 'avaliações';
                 });
                 const eventosSheet = eventosSheetName ? workbook.Sheets[eventosSheetName] : undefined;
 
-
                 if (!aulasSheet) {
                   return reject(new Error("Aba 'Aulas' não encontrada na planilha."));
                 }
                 
-                const rawAulasData = XLSX.utils.sheet_to_json(aulasSheet);
+                // Processa as linhas com chaves case-insensitive
+                const processRows = (sheet: any) => {
+                    const rawData = XLSX.utils.sheet_to_json(sheet);
+                    return rawData.map((row: any) => {
+                        const lowerCaseRow: { [key: string]: any } = {};
+                        for (const key in row) {
+                            lowerCaseRow[key.toLowerCase().trim()] = row[key];
+                        }
+                        return lowerCaseRow;
+                    });
+                };
                 
-                const aulasData: AulaEntry[] = rawAulasData.map((row: any): AulaEntry => ({
+                const processedAulasData = processRows(aulasSheet);
+                
+                const aulasData: AulaEntry[] = processedAulasData.map((row: any): AulaEntry => ({
                     periodo: String(row.periodo ?? '').trim(),
                     modulo: String(row.modulo ?? '').trim(),
                     grupo: String(row.grupo ?? '').trim(),
                     dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
                     disciplina: String(row.disciplina ?? '').trim(),
-                    professor: String(row.professor ?? '').trim(),
                     sala: String(row.sala ?? '').trim(),
                     horario_inicio: formatExcelTime(row.horario_inicio),
                     horario_fim: formatExcelTime(row.horario_fim),
@@ -321,8 +351,8 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
 
                 let eventsData: Event[] = [];
                 if (eventosSheet) {
-                    const rawEventsData = XLSX.utils.sheet_to_json(eventosSheet);
-                    eventsData = rawEventsData.map(mapRowToEvent);
+                    const processedEventsData = processRows(eventosSheet);
+                    eventsData = processedEventsData.map(mapRowToEvent);
                 }
 
                 // Validação de cabeçalhos
@@ -330,7 +360,6 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     return reject(new Error("Formato incorreto na aba 'Aulas'. Verifique os cabeçalhos das colunas."));
                 }
                 if (eventosSheet && eventsData.length > 0 && (!eventsData[0].data || !eventsData[0].tipo)) {
-                   // Fix: Corrected typo from eventsSheetName to eventosSheetName.
                    return reject(new Error(`Formato incorreto na aba '${eventosSheetName}'. Verifique os cabeçalhos.`));
                 }
 
