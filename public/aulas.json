@@ -5,11 +5,10 @@
     "grupo": "GRUPO - A",
     "dia_semana": "Segunda-feira",
     "disciplina": "SISTEMAS ORGÂNICOS INTEGRADOS I",
-    "professor": "-",
     "sala": "APG A",
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
-    "tipo": ""
+    "tipo": "Prática"
   },
   {
     "periodo": "1º Período",
@@ -17,11 +16,10 @@
     "grupo": "GRUPO - A",
     "dia_semana": "Quinta-feira",
     "disciplina": "SISTEMAS ORGÂNICOS INTEGRADOS I",
-    "professor": "-",
     "sala": "APG A",
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
-    "tipo": ""
+    "tipo": "Teórica"
   },
   {
     "periodo": "1º Período",
@@ -29,11 +27,10 @@
     "grupo": "GRUPO - A",
     "dia_semana": "Segunda-feira",
     "disciplina": "SISTEMAS ORGÂNICOS INTEGRADOS I",
-    "professor": "-",
     "sala": "LABORATÓRIO",
     "horario_inicio": "13:00",
     "horario_fim": "18:00",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -41,11 +38,10 @@
     "grupo": "GRUPO - A",
     "dia_semana": "Quarta-feira",
     "disciplina": "SISTEMAS ORGÂNICOS INTEGRADOS I",
-    "professor": "-",
     "sala": "AUDITÓRIO",
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -53,11 +49,10 @@
     "grupo": "GRUPO - B",
     "dia_semana": "Segunda-feira",
     "disciplina": "SISTEMAS ORGÂNICOS INTEGRADOS I",
-    "professor": "-",
     "sala": "APG B",
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -65,11 +60,10 @@
     "grupo": "GRUPO - 1",
     "dia_semana": "Terça-feira",
     "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
-    "professor": "-",
     "sala": "SALA 02",
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -77,11 +71,10 @@
     "grupo": "GRUPO - 2",
     "dia_semana": "Terça-feira",
     "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
-    "professor": "-",
     "sala": "SALA 02",
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -89,11 +82,10 @@
     "grupo": "GRUPO - 3",
     "dia_semana": "Terça-feira",
     "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
-    "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -101,11 +93,10 @@
     "grupo": "GRUPO - 4",
     "dia_semana": "Terça-feira",
     "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
-    "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -113,11 +104,10 @@
     "grupo": "GRUPO - 5",
     "dia_semana": "Terça-feira",
     "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
-    "professor": "-",
     "sala": "SALA 02",
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -125,11 +115,10 @@
     "grupo": "GRUPO - 6",
     "dia_semana": "Terça-feira",
     "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
-    "professor": "-",
     "sala": "SALA 02",
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
-    "tipo": ""
+    "tipo": "Simulação"
   },
   {
     "periodo": "1º Período",
@@ -137,11 +126,10 @@
     "grupo": "GRUPO - 7",
     "dia_semana": "Terça-feira",
     "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
-    "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
-    "tipo": ""
+    "tipo": "Prática"
   },
   {
     "periodo": "1º Período",
@@ -149,11 +137,10 @@
     "grupo": "GRUPO - 8",
     "dia_semana": "Terça-feira",
     "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
-    "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
-    "tipo": ""
+    "tipo": "Prática"
   },
   {
     "periodo": "1º Período",
@@ -161,11 +148,10 @@
     "grupo": "GRUPO - A",
     "dia_semana": "Quinta-feira",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "professor": "-",
     "sala": "SALA 06",
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
-    "tipo": ""
+    "tipo": "Prática"
   },
   {
     "periodo": "1º Período",
@@ -173,11 +159,10 @@
     "grupo": "GRUPO - A",
     "dia_semana": "Quinta-feira",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
-    "tipo": ""
+    "tipo": "Prática"
   },
   {
     "periodo": "1º Período",
@@ -185,11 +170,10 @@
     "grupo": "GRUPO - B",
     "dia_semana": "Quinta-feira",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "professor": "-",
     "sala": "SALA 06",
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
-    "tipo": ""
+    "tipo": "Prática"
   },
   {
     "periodo": "1º Período",
@@ -197,11 +181,10 @@
     "grupo": "GRUPO - B",
     "dia_semana": "Quinta-feira",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "professor": "-",
     "sala": "SALA 04",
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
-    "tipo": ""
+    "tipo": "Prática"
   },
   {
     "periodo": "1º Período",
@@ -209,11 +192,10 @@
     "grupo": "GRUPO - C",
     "dia_semana": "Quinta-feira",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "professor": "-",
     "sala": "SALA 06",
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
-    "tipo": ""
+    "tipo": "Teórica"
   },
   {
     "periodo": "1º Período",
@@ -221,11 +203,10 @@
     "grupo": "GRUPO - C",
     "dia_semana": "Quinta-feira",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "professor": "-",
     "sala": "SALA 03",
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
-    "tipo": ""
+    "tipo": "Teórica"
   },
   {
     "periodo": "1º Período",
@@ -233,11 +214,10 @@
     "grupo": "GRUPO - D",
     "dia_semana": "Quinta-feira",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "professor": "-",
     "sala": "SALA 06",
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
-    "tipo": ""
+    "tipo": "Teórica"
   },
   {
     "periodo": "1º Período",
@@ -245,10 +225,9 @@
     "grupo": "GRUPO - D",
     "dia_semana": "Quinta-feira",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "professor": "-",
     "sala": "SALA 04",
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
-    "tipo": ""
+    "tipo": "Teórica"
   }
 ]
