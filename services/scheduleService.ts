@@ -244,6 +244,7 @@ export const fetchEvents = (periodo: string, selections: Omit<ModuleSelection, '
         let isSelectionMatch = false;
         if (isPeriodMatch) {
             // Para eventos do período, verifica se corresponde a alguma seleção do usuário.
+            // Um evento com grupo "Geral" deve aparecer para todos do período.
             isSelectionMatch = selections.some(sel => 
                 (sel.modulo === event.modulo || event.modulo === '-' || event.modulo === 'Todos') && 
                 (event.grupo === sel.grupo || event.grupo === 'Todos' || event.grupo === 'Geral')
@@ -314,6 +315,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 
                 // Processa as linhas com chaves case-insensitive
                 const processRows = (sheet: any) => {
+                    if (!sheet) return [];
                     const rawData = XLSX.utils.sheet_to_json(sheet);
                     return rawData.map((row: any) => {
                         const lowerCaseRow: { [key: string]: any } = {};
