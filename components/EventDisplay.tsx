@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import type { Event } from '../types';
 import { stringToColor } from '../services/colorService';
@@ -59,6 +58,17 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   );
 };
 
+// Helper to interpret dates in DD/MM/AAAA format safely
+const parseBrDate = (dateString: string): Date => {
+  if (!dateString || typeof dateString !== 'string') return new Date(0);
+  const parts = dateString.split('/');
+  if (parts.length !== 3) return new Date(0);
+  const [day, month, year] = parts.map(Number);
+  if (isNaN(day) || isNaN(month) || isNaN(year) || year < 1970) return new Date(0);
+  // O mês é 0-indexado no construtor de Date do JS
+  return new Date(year, month - 1, day);
+};
+
 const EventDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => {
   const [selectedType, setSelectedType] = useState<string>('Todos');
 
@@ -75,6 +85,25 @@ const EventDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => {
     }
     return events.filter(event => event.tipo === selectedType);
   }, [events, selectedType]);
+  
+  const groupedByMonth = useMemo(() => {
+    if (!filteredEvents) return {};
+
+    return filteredEvents.reduce<Record<string, Event[]>>((acc, event) => {
+        const date = parseBrDate(event.data);
+        if (isNaN(date.getTime()) || date.getFullYear() < 1971) return acc; // Ignora datas inválidas
+        
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!acc[monthKey]) {
+            acc[monthKey] = [];
+        }
+        acc[monthKey].push(event);
+        return acc;
+    }, {});
+  }, [filteredEvents]);
+  
+  const sortedMonthKeys = useMemo(() => Object.keys(groupedByMonth).sort(), [groupedByMonth]);
 
   if (!events || events.length === 0) {
     return (
@@ -90,35 +119,58 @@ const EventDisplay: React.FC<{ events: Event[] | null }> = ({ events }) => {
   
   return (
     <div>
-      {eventTypes.length > 2 && (
-        <div className="mb-8 flex flex-wrap justify-center gap-2">
-          {eventTypes.map(type => (
-            <button
-              key={type}
-              onClick={() => setSelectedType(type)}
-              className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors duration-200 ${
-                selectedType === type
-                  ? 'bg-afya-pink text-white shadow-md'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
+      {/* A condição foi alterada de > 2 para > 1 para mostrar o filtro mesmo com um único tipo de evento. */}
+      {eventTypes.length > 1 && (
+         <div className="mb-8 max-w-sm mx-auto">
+            <label htmlFor="event-type-filter" className="block mb-2 text-sm font-medium text-gray-300 text-center">
+                Filtrar por tipo de evento
+            </label>
+            <select
+                id="event-type-filter"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-afya-pink focus:border-afya-pink transition duration-150 ease-in-out appearance-none"
             >
-              {type}
-            </button>
-          ))}
+                {eventTypes.map(type => (
+                    <option key={type} value={type} className="bg-gray-800">{type}</option>
+                ))}
+            </select>
         </div>
       )}
 
       {(!filteredEvents || filteredEvents.length === 0) ? (
         <div className="text-center text-gray-400 p-8 bg-gray-800/50 rounded-2xl">
-            <p className="text-lg">Nenhum evento do tipo "{selectedType}" foi encontrado.</p>
+            <p className="text-lg text-white">Nenhum evento do tipo "{selectedType}" foi encontrado.</p>
+            <p className="text-sm text-gray-500 mt-1">Tente selecionar outra categoria no filtro acima.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event, index) => (
-            <div key={`${event.disciplina}-${event.data}-${index}`} className="animate-fade-in transition-transform duration-300 hover:scale-[1.02]" style={{ animationDelay: `${index * 100}ms` }}>
-                <EventCard event={event} />
-            </div>
-          ))}
+        <div className="space-y-10">
+          {sortedMonthKeys.map((monthKey, index) => {
+            const eventsInMonth = groupedByMonth[monthKey];
+            const [year, month] = monthKey.split('-').map(Number);
+            const monthDate = new Date(year, month - 1, 1);
+            
+            const monthName = new Intl.DateTimeFormat('pt-BR', {
+                month: 'long',
+                year: 'numeric',
+                timeZone: 'America/Sao_Paulo'
+            }).format(monthDate);
+
+            return (
+              <div key={monthKey} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+                  <h3 className="text-2xl font-bold text-afya-pink mb-4 capitalize pl-2 border-l-4 border-afya-pink">
+                    {monthName}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {eventsInMonth.map((event, eventIndex) => (
+                          <div key={`${event.disciplina}-${event.data}-${eventIndex}`} className="transition-transform duration-300 hover:scale-[1.02]">
+                              <EventCard event={event} />
+                          </div>
+                      ))}
+                  </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

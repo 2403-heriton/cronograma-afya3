@@ -9,6 +9,7 @@ import CoffeeIcon from './icons/CoffeeIcon';
 import BookIcon from './icons/BookIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import ClipboardListIcon from './icons/ClipboardListIcon';
+import UserIcon from './icons/UserIcon';
 
 // Local types for rendering logic
 type HorarioLivre = {
@@ -56,6 +57,7 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
           <AulaInfo icon={<ClockIcon className="w-4 h-4" />} label="Horário" value={aula.horario} />
           {aula.tipo && <AulaInfo icon={<ClipboardListIcon className="w-4 h-4" />} label="Tipo" value={aula.tipo} />}
           <AulaInfo icon={<LocationIcon className="w-4 h-4" />} label="Sala" value={aula.sala} />
+          {aula.professor && <AulaInfo icon={<UserIcon className="w-4 h-4" />} label="Professor" value={aula.professor} />}
         </div>
       </div>
 

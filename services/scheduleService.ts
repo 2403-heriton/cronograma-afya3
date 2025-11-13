@@ -99,35 +99,52 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
     // Prioriza a busca de dados da rede para garantir que os usuários obtenham a versão mais recente.
     try {
         const cacheBuster = `?t=${Date.now()}`;
-        const [aulasResponse, eventsResponse] = await Promise.all([
+        const [aulasResponse, eventosResponse, avaliacoesResponse] = await Promise.all([
             fetch(`/aulas.json${cacheBuster}`),
             fetch(`/eventos.json${cacheBuster}`),
+            fetch(`/avaliacoes.json${cacheBuster}`), // Tenta buscar avaliações também
         ]);
         
-        if (aulasResponse.ok && eventsResponse.ok) {
-            const aulasJson = await aulasResponse.json();
-            const eventsJson = await eventsResponse.json();
-            
-            rawAulas = aulasJson;
-            rawEvents = eventsJson;
-
-            // Atualiza o localStorage com os dados mais recentes para fallback offline.
-            localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
-            localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
-        } else {
-             // Se o servidor retornar um erro (ex: 404), aciona o bloco catch.
-             throw new Error(`Falha na busca do servidor. Status: Aulas ${aulasResponse.status}, Eventos ${eventsResponse.status}`);
+        if (!aulasResponse.ok) {
+             throw new Error(`Falha na busca do servidor por aulas.json. Status: ${aulasResponse.status}`);
         }
+        
+        const aulasJson = await aulasResponse.json();
+        rawAulas = aulasJson;
+        
+        // Processa eventos e avaliações, tratando o caso de um deles não existir (404)
+        if (eventosResponse.ok) {
+            const eventosJson = await eventosResponse.json();
+            rawEvents = rawEvents.concat(eventosJson);
+        }
+        if (avaliacoesResponse.ok) {
+            const avaliacoesJson = await avaliacoesResponse.json();
+            rawEvents = rawEvents.concat(avaliacoesJson);
+        }
+
+        // Atualiza o localStorage com os dados mais recentes para fallback offline.
+        localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
+        localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
+
     } catch (error) {
         // Se a busca na rede falhar (ex: offline, CORS), tenta carregar do cache local.
         console.warn("Falha na busca da rede, tentando carregar do cache local.", error);
         
-        const aulasData = localStorage.getItem(AULAS_KEY);
-        const eventsData = localStorage.getItem(EVENTS_KEY);
+        const aulasDataStr = localStorage.getItem(AULAS_KEY);
+        const eventsDataStr = localStorage.getItem(EVENTS_KEY);
 
-        if (aulasData && eventsData) {
-            rawAulas = JSON.parse(aulasData);
-            rawEvents = JSON.parse(eventsData);
+        if (aulasDataStr && eventsDataStr) {
+            try {
+                rawAulas = JSON.parse(aulasDataStr);
+                rawEvents = JSON.parse(eventsDataStr);
+            } catch (parseError) {
+                console.error("Erro ao analisar dados do cache local. Usando dados padrão.", parseError);
+                // Limpa o cache corrompido para evitar erros futuros
+                localStorage.removeItem(AULAS_KEY);
+                localStorage.removeItem(EVENTS_KEY);
+                rawAulas = defaultAulas;
+                rawEvents = defaultEvents;
+            }
         } else {
             // Se o cache local também falhar, usa os dados padrão incluídos no build.
             console.warn("Cache local vazio, usando dados padrão.");
@@ -148,6 +165,7 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         horario_inicio: String(row.horario_inicio ?? '').trim(),
         horario_fim: String(row.horario_fim ?? '').trim(),
         tipo: String(row.tipo ?? '').trim(),
+        professor: String(row.professor ?? '').trim(),
     }));
     
     const mapRawToEvent = (row: any): Event => ({
@@ -186,6 +204,7 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
             sala: aulaEntry.sala,
             modulo: aulaEntry.modulo,
             tipo: aulaEntry.tipo,
+            professor: aulaEntry.professor,
         };
         scheduleMap[dia].aulas.push(aula);
     });
@@ -332,6 +351,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     horario_inicio: formatExcelTime(row.horario_inicio),
                     horario_fim: formatExcelTime(row.horario_fim),
                     tipo: String(row.tipo ?? row['tipo de aula'] ?? '').trim(),
+                    professor: String(row.professor ?? row.docente ?? '').trim(),
                 }));
                 
                 const mapRowToEvent = (row: any): Event => ({

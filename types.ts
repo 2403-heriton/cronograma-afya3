@@ -4,7 +4,8 @@ export interface Aula {
   disciplina: string;
   sala: string;
   modulo: string;
-  tipo?: string; // Adicionado para o tipo de aula (APG, Lab, etc.)
+  tipo?: string;
+  professor?: string;
   events?: Event[];
 }
 
@@ -19,6 +20,7 @@ export interface AulaEntry {
   disciplina: string;
   sala: string;
   tipo?: string;
+  professor?: string;
 }
 
 export interface DiaDeAula {
