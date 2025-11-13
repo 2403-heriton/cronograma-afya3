@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { fetchSchedule, getUniqueModulesForPeriod, fetchEvents, initializeAndLoadData, getUniquePeriods, getUniqueGroupsForModule } from './services/scheduleService';
 import type { Schedule, ModuleSelection, Event, AulaEntry } from './types';
@@ -16,6 +17,9 @@ interface UploadData {
   eventsData: Event[];
   eventsSheetName?: string; 
 }
+
+const LAST_SEARCH_PERIODO_KEY = 'afya-last-periodo';
+const LAST_SEARCH_SELECTIONS_KEY = 'afya-last-selections';
 
 
 const App: React.FC = () => {
@@ -56,15 +60,34 @@ const App: React.FC = () => {
             if (aulas.length > 0) {
                 const periods = getUniquePeriods(aulas);
                 setAvailablePeriods(periods);
-                if (periods.length > 0) {
+                
+                // --- Lógica do Local Storage para persistir a última busca ---
+                const savedPeriodo = localStorage.getItem(LAST_SEARCH_PERIODO_KEY);
+                if (savedPeriodo && periods.includes(savedPeriodo)) {
+                    setPeriodo(savedPeriodo);
+                } else if (periods.length > 0) {
                     setPeriodo(periods[0]);
                 }
-            } else {
+                
+                const savedSelectionsJSON = localStorage.getItem(LAST_SEARCH_SELECTIONS_KEY);
+                if (savedSelectionsJSON) {
+                    try {
+                        const savedSelections = JSON.parse(savedSelectionsJSON);
+                        if (Array.isArray(savedSelections) && savedSelections.length > 0) {
+                             setSelections(savedSelections);
+                        }
+                    } catch (e) {
+                        console.error("Falha ao analisar seleções salvas do localStorage", e);
+                        setSelections([{ id: Date.now(), modulo: '', grupo: '' }]);
+                    }
+                }
+            } else if (!error) {
                  setError("Nenhum dado de aulas encontrado. Por favor, use o modo de administrador para carregar uma planilha.");
             }
         } catch (err) {
             console.error("Erro ao carregar dados iniciais:", err);
-            setError("Não foi possível carregar os dados. Tente atualizar a página.");
+            const error = err as Error;
+            setError(error.message || "Não foi possível carregar os dados. Tente atualizar a página.");
         } finally {
             setIsInitializing(false);
         }
@@ -107,7 +130,7 @@ const App: React.FC = () => {
   const addSelection = () => {
     const selectedModules = selections.map(s => s.modulo);
     const nextAvailableModule = availableModules.find(m => !selectedModules.includes(m)) || '';
-    if (!nextAvailableModule) return; // Não adiciona se não houver módulos disponíveis
+    if (!nextAvailableModule) return;
 
     const nextAvailableGroups = getUniqueGroupsForModule(periodo, nextAvailableModule, allAulas);
     const nextGroup = nextAvailableGroups[0] || '';
@@ -164,7 +187,6 @@ const App: React.FC = () => {
       if (scheduleResult && eventsResult) {
         scheduleResult.forEach(dia => {
           dia.aulas.forEach(aula => {
-            // A associação agora é feita apenas pela disciplina, tornando-a mais robusta.
             const matchingEvents = eventsResult.filter(event => 
               event.disciplina === aula.disciplina
             );
@@ -177,12 +199,24 @@ const App: React.FC = () => {
 
       setSchedule(scheduleResult);
       setEvents(eventsResult);
+
+      // Salva a busca bem-sucedida no localStorage
+      localStorage.setItem(LAST_SEARCH_PERIODO_KEY, periodo);
+      localStorage.setItem(LAST_SEARCH_SELECTIONS_KEY, JSON.stringify(selections));
+
     } catch (e: any) {
       setError(e.message || "Ocorreu um erro desconhecido.");
     } finally {
       setIsLoading(false);
     }
   }, [periodo, selections, allAulas, allEvents]);
+  
+  const handleClearSearch = () => {
+    setSearched(false);
+    setSchedule(null);
+    setEvents(null);
+    setError(null);
+  };
 
   const handleUploadSuccess = (data: UploadData) => {
     setAllAulas(data.aulasData);
@@ -280,6 +314,15 @@ const App: React.FC = () => {
                   Calendário de Eventos
                 </button>
               </div>
+              
+              <div className="text-center mb-6">
+                <button 
+                  onClick={handleClearSearch} 
+                  className="text-sm text-afya-blue hover:underline focus:outline-none focus:ring-2 focus:ring-afya-blue rounded"
+                >
+                  Fazer Nova Busca
+                </button>
+              </div>
 
               {view === 'schedule' ? (
                 <ScheduleDisplay schedule={schedule} />
@@ -290,8 +333,9 @@ const App: React.FC = () => {
           )}
           {!searched && !isLoading && !error && (
              <div className="text-center text-gray-500 p-8 bg-gray-800/50 rounded-2xl shadow-sm border border-gray-700">
-                <p className="text-lg">Seu cronograma e eventos aparecerão aqui após a busca.</p>
-                <p className="text-sm mt-2">Use o formulário acima para selecionar seu período, módulo e grupo.</p>
+                <CalendarIcon className="w-16 h-16 mx-auto text-gray-600 mb-4" />
+                <p className="text-lg text-gray-300">Seu cronograma está a um clique de distância.</p>
+                <p className="text-sm mt-2">Utilize os filtros acima e clique em "Buscar Cronograma" para visualizar suas aulas e eventos.</p>
             </div>
           )}
         </div>

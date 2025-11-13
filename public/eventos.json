@@ -1,10 +1,12 @@
+
 [
   {
     "periodo": "1º Período",
     "data": "20/12/2025",
+    "data_fim": "22/12/2025",
     "horario": "18:00",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "tipo": "Palestra",
+    "tipo": "Semana de Palestras",
     "local": "Auditório",
     "modulo": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
     "grupo": "GRUPO - B"

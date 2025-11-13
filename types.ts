@@ -37,6 +37,7 @@ export interface ModuleSelection {
 export interface Event {
   periodo: string;
   data: string;
+  data_fim?: string; // Adicionado para a data de término do evento
   horario: string;
   disciplina: string;
   tipo: string;

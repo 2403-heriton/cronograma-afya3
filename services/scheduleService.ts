@@ -50,6 +50,7 @@ const formatExcelTime = (value: any): string => {
 
 // Helper to format Excel date values (serial numbers, Date objects, or strings) into DD/MM/YYYY format.
 const formatExcelDate = (value: any): string => {
+    if (!value) return ''; // Retorna string vazia para valores nulos ou indefinidos
     if (value instanceof Date) {
         const day = String(value.getUTCDate()).padStart(2, '0');
         const month = String(value.getUTCMonth() + 1).padStart(2, '0'); // getUTCMonth is 0-indexed
@@ -95,7 +96,7 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
     let rawAulas: any[] = [];
     let rawEvents: any[] = [];
 
-    // Prioritize fetching data from the network to ensure users get the latest version.
+    // Prioriza a busca de dados da rede para garantir que os usuários obtenham a versão mais recente.
     try {
         const cacheBuster = `?t=${Date.now()}`;
         const [aulasResponse, eventsResponse] = await Promise.all([
@@ -110,16 +111,16 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
             rawAulas = aulasJson;
             rawEvents = eventsJson;
 
-            // Update localStorage with the latest data for offline fallback.
+            // Atualiza o localStorage com os dados mais recentes para fallback offline.
             localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
             localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
         } else {
-             // If the server returns an error (e.g., 404), trigger the catch block.
-             throw new Error(`Server fetch failed. Status: Aulas ${aulasResponse.status}, Eventos ${eventsResponse.status}`);
+             // Se o servidor retornar um erro (ex: 404), aciona o bloco catch.
+             throw new Error(`Falha na busca do servidor. Status: Aulas ${aulasResponse.status}, Eventos ${eventsResponse.status}`);
         }
     } catch (error) {
-        // If the network request fails (e.g., offline, CORS), fall back to localStorage.
-        console.warn("Network fetch failed, attempting to load from local cache.", error);
+        // Se a busca na rede falhar (ex: offline, CORS), tenta carregar do cache local.
+        console.warn("Falha na busca da rede, tentando carregar do cache local.", error);
         
         const aulasData = localStorage.getItem(AULAS_KEY);
         const eventsData = localStorage.getItem(EVENTS_KEY);
@@ -128,23 +129,15 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
             rawAulas = JSON.parse(aulasData);
             rawEvents = JSON.parse(eventsData);
         } else {
-            // If both network and localStorage fail, use the embedded default data as a last resort.
-            console.warn("Local cache is also unavailable. Using embedded default data as fallback.");
+            // Se o cache local também falhar, usa os dados padrão incluídos no build.
+            console.warn("Cache local vazio, usando dados padrão.");
             rawAulas = defaultAulas;
             rawEvents = defaultEvents;
-
-            // And populate the cache with this default data for subsequent offline loads.
-            try {
-                localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
-                localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
-            } catch (storageError) {
-                console.error("Failed to populate localStorage with fallback data.", storageError);
-            }
         }
     }
 
 
-    // Sanitize data on load to ensure type consistency, fixing issues with old stored data.
+    // Higieniza os dados no carregamento para garantir consistência de tipos.
     const aulas: AulaEntry[] = rawAulas.map((row: any) => ({
         periodo: String(row.periodo ?? '').trim(),
         modulo: String(row.modulo ?? '').trim(),
@@ -160,6 +153,7 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
     const mapRawToEvent = (row: any): Event => ({
         periodo: String(row.periodo ?? '').trim(),
         data: String(row.data ?? '').trim(),
+        data_fim: String(row.data_fim ?? '').trim(),
         horario: String(row.horario ?? '').trim(),
         disciplina: String(row.disciplina ?? '').trim(),
         tipo: String(row.tipo ?? '').trim(),
@@ -342,7 +336,8 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 
                 const mapRowToEvent = (row: any): Event => ({
                     periodo: String(row.periodo ?? '').trim(),
-                    data: formatExcelDate(row.data),
+                    data: formatExcelDate(row['data inicio']),
+                    data_fim: formatExcelDate(row['data fim']),
                     horario: formatExcelTime(row.horario),
                     disciplina: String(row.disciplina ?? '').trim(),
                     tipo: String(row.tipo ?? '').trim(),

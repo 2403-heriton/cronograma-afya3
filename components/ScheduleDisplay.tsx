@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import type { Schedule, DiaDeAula, Aula } from '../types';
 import { stringToColor } from '../services/colorService';
@@ -199,7 +200,7 @@ const ScheduleDisplay: React.FC<{ schedule: Schedule | null }> = ({ schedule }) 
         <NotFoundIcon className="w-16 h-16 mx-auto text-gray-500 mb-4" />
         <p className="text-xl font-semibold text-white">Nenhum cronograma encontrado.</p>
         <p className="text-md mt-1 text-gray-400">
-          Verifique se os dados estão atualizados ou se os filtros selecionados estão corretos.
+          Não encontramos aulas para os filtros selecionados. Tente ajustar sua busca.
         </p>
       </div>
     );
@@ -214,7 +215,7 @@ const ScheduleDisplay: React.FC<{ schedule: Schedule | null }> = ({ schedule }) 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {completeSchedule.map((dia, index) => (
-        <div key={dia.dia} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+        <div key={dia.dia} className="animate-fade-in transition-transform duration-300 hover:scale-[1.02]" style={{ animationDelay: `${index * 100}ms` }}>
            <DiaCard diaDeAula={dia} />
         </div>
       ))}

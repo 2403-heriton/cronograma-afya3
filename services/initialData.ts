@@ -1,5 +1,6 @@
 import type { AulaEntry, Event } from '../types';
 
+// Dados padrão para fallback, garantindo que o aplicativo funcione offline na primeira inicialização.
 export const defaultAulas: AulaEntry[] = [
   {
     "periodo": "1º Período",
@@ -232,17 +233,17 @@ export const defaultAulas: AulaEntry[] = [
     "horario_fim": "16:30",
     "tipo": "Teórica"
   }
-
 ];
 
 
 export const defaultEvents: Event[] = [
-   {
+  {
     "periodo": "1º Período",
     "data": "20/12/2025",
+    "data_fim": "22/12/2025",
     "horario": "18:00",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "tipo": "Palestra",
+    "tipo": "Semana de Palestras",
     "local": "Auditório",
     "modulo": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
     "grupo": "GRUPO - B"
@@ -257,5 +258,4 @@ export const defaultEvents: Event[] = [
     "modulo": "-",
     "grupo": "Geral"
   }
-
 ];
