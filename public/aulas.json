@@ -9,7 +9,7 @@
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
     "tipo": "Prática",
-    "professor": "Dr. House"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -21,7 +21,7 @@
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
     "tipo": "Teórica",
-    "professor": "Dr. House"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -33,7 +33,7 @@
     "horario_inicio": "13:00",
     "horario_fim": "18:00",
     "tipo": "Simulação",
-    "professor": "Dra. Grey"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -45,7 +45,7 @@
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. House"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -57,7 +57,7 @@
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
     "tipo": "Simulação",
-    "professor": "Dr. Wilson"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -69,7 +69,7 @@
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. Smith"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -81,7 +81,7 @@
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. Smith"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -93,7 +93,7 @@
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. Smith"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -105,7 +105,7 @@
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. Smith"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -117,7 +117,7 @@
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
     "tipo": "Simulação",
-    "professor": "Dra. Yang"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -129,19 +129,19 @@
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
     "tipo": "Simulação",
-    "professor": "Dra. Yang"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
     "modulo": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
     "grupo": "GRUPO - 7",
     "dia_semana": "Terça-feira",
-    "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSão, PESQUISA E ENSINO I",
+    "disciplina": "PRÁTICAS INTERDISCIPLINARES DE EXTENSÃO, PESQUISA E ENSINO I",
     "sala": "SALA 03",
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
     "tipo": "Prática",
-    "professor": "Dra. Yang"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -153,7 +153,7 @@
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
     "tipo": "Prática",
-    "professor": "Dra. Yang"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -165,7 +165,7 @@
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
     "tipo": "Prática",
-    "professor": "Dr. Foreman"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -177,7 +177,7 @@
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
     "tipo": "Prática",
-    "professor": "Dr. Foreman"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -189,7 +189,7 @@
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
     "tipo": "Prática",
-    "professor": "Dr. Foreman"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -201,7 +201,7 @@
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
     "tipo": "Prática",
-    "professor": "Dr. Foreman"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -213,7 +213,7 @@
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
     "tipo": "Teórica",
-    "professor": "Dr. Chase"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -225,7 +225,7 @@
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
     "tipo": "Teórica",
-    "professor": "Dr. Chase"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -237,7 +237,7 @@
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
     "tipo": "Teórica",
-    "professor": "Dr. Chase"
+    "professor": "-"
   },
   {
     "periodo": "1º Período",
@@ -249,6 +249,6 @@
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
     "tipo": "Teórica",
-    "professor": "Dr. Chase"
+    "professor": "-"
   }
 ]
