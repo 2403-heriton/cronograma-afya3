@@ -168,8 +168,11 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
 
     // Higieniza os dados no carregamento para garantir consistência de tipos.
     const aulas: AulaEntry[] = rawAulas.map((row: any) => {
-        // Procura a chave de observação de forma insensível a maiúsculas/minúsculas para robustez.
-        const obsKey = Object.keys(row).find(k => k.toLowerCase().trim() === 'observacao');
+        // Procura a chave de observação de forma robusta, com ou sem "ç".
+        const obsKey = Object.keys(row).find(k => {
+            const lowerK = k.toLowerCase().trim();
+            return lowerK === 'observação' || lowerK === 'observacao';
+        });
         const observacaoValue = obsKey ? row[obsKey] : '';
 
         return {
@@ -413,7 +416,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     horario_fim: formatExcelTime(row.horario_fim),
                     tipo: String(row.tipo ?? row['tipo de aula'] ?? '').trim(),
                     professor: String(row.professor ?? row.docente ?? '').trim(),
-                    observacao: String(row.observacao ?? '').trim(),
+                    observacao: String(row.observação ?? row.observacao ?? '').trim(),
                 }));
                 
                 let eventsData: Event[] = [];
