@@ -132,12 +132,16 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
             const data = await avaliacoesRes.json();
             if (Array.isArray(data)) combinedEvents.push(...data);
         }
-        networkEvents = combinedEvents;
+        // Apenas considera os dados da rede válidos se eles não estiverem vazios.
+        if (combinedEvents.length > 0) {
+            networkEvents = combinedEvents;
+        }
 
         // Processa Eletivas
         if (eletivasRes.ok) {
             const data = await eletivasRes.json();
-            if (Array.isArray(data)) {
+            // Apenas considera os dados da rede válidos se eles não estiverem vazios.
+            if (Array.isArray(data) && data.length > 0) {
                  networkEletivas = data;
             }
         }
