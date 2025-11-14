@@ -1,4 +1,3 @@
-
 import type { Schedule, DiaDeAula, ModuleSelection, Aula, Event, AulaEntry, EletivaEntry } from "../types";
 import { defaultAulas, defaultEvents, defaultEletivas } from "./initialData";
 
@@ -95,80 +94,109 @@ const normalizePeriodo = (periodo: string): string => {
 
 
 export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], events: Event[], eletivas: EletivaEntry[] }> => {
-    let rawAulas: any[] = [];
-    let rawEvents: any[] = [];
-    let rawEletivas: any[] = [];
+    let finalAulas: any[];
+    let finalEvents: any[];
+    let finalEletivas: any[];
 
-    // Prioriza a busca de dados da rede para garantir que os usuários obtenham a versão mais recente.
+    // --- Lógica de Carregamento em Cascata ---
+
+    // 1. Tenta buscar da rede
+    let networkAulas: any[] | null = null;
+    let networkEvents: any[] | null = null;
+    let networkEletivas: any[] | null = null;
+
     try {
         const cacheBuster = `?t=${Date.now()}`;
-        const [aulasResponse, eventosResponse, avaliacoesResponse, eletivasResponse] = await Promise.all([
+        const [aulasRes, eventosRes, avaliacoesRes, eletivasRes] = await Promise.all([
             fetch(`/aulas.json${cacheBuster}`),
             fetch(`/eventos.json${cacheBuster}`),
-            fetch(`/avaliacoes.json${cacheBuster}`), // Tenta buscar avaliações também
-            fetch(`/eletivas.json${cacheBuster}`), // Busca eletivas
+            fetch(`/avaliacoes.json${cacheBuster}`),
+            fetch(`/eletivas.json${cacheBuster}`),
         ]);
-        
-        if (!aulasResponse.ok) {
-             throw new Error(`Falha na busca do servidor por aulas.json. Status: ${aulasResponse.status}`);
-        }
-        
-        rawAulas = await aulasResponse.json();
-        
-        // Processa eventos e avaliações, tratando o caso de um deles não existir (404)
-        if (eventosResponse.ok) {
-            rawEvents = rawEvents.concat(await eventosResponse.json());
-        }
-        if (avaliacoesResponse.ok) {
-            rawEvents = rawEvents.concat(await avaliacoesResponse.json());
-        }
-        if (eletivasResponse.ok) {
-            rawEletivas = await eletivasResponse.json();
-        }
 
-        // Atualiza o localStorage com os dados mais recentes para fallback offline.
-        localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
-        localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
-        localStorage.setItem(ELETIVAS_KEY, JSON.stringify(rawEletivas));
+        // Processa Aulas: só considera válido se a requisição for bem-sucedida E o array não for vazio.
+        if (aulasRes.ok) {
+            const data = await aulasRes.json();
+            if (Array.isArray(data) && data.length > 0) {
+                networkAulas = data;
+            }
+        }
+        
+        // Processa Eventos e Avaliações
+        const combinedEvents: any[] = [];
+        if (eventosRes.ok) {
+            const data = await eventosRes.json();
+            if (Array.isArray(data)) combinedEvents.push(...data);
+        }
+        if (avaliacoesRes.ok) {
+            const data = await avaliacoesRes.json();
+            if (Array.isArray(data)) combinedEvents.push(...data);
+        }
+        networkEvents = combinedEvents;
+
+        // Processa Eletivas
+        if (eletivasRes.ok) {
+            const data = await eletivasRes.json();
+            if (Array.isArray(data)) {
+                 networkEletivas = data;
+            }
+        }
 
     } catch (error) {
-        // Se a busca na rede falhar (ex: offline, CORS), tenta carregar do cache local.
-        console.warn("Falha na busca da rede, tentando carregar do cache local.", error);
-        
-        const aulasDataStr = localStorage.getItem(AULAS_KEY);
-        const eventsDataStr = localStorage.getItem(EVENTS_KEY);
-        const eletivasDataStr = localStorage.getItem(ELETIVAS_KEY);
+        console.warn("Falha na busca de dados da rede. Tentando fallback para o cache local.", error);
+    }
 
+    // 2. Decide a fonte de dados final para AULAS (fonte principal)
+    if (networkAulas) {
+        finalAulas = networkAulas;
+        localStorage.setItem(AULAS_KEY, JSON.stringify(finalAulas));
+    } else {
         try {
-            rawAulas = aulasDataStr ? JSON.parse(aulasDataStr) : [];
-            rawEvents = eventsDataStr ? JSON.parse(eventsDataStr) : [];
-            rawEletivas = eletivasDataStr ? JSON.parse(eletivasDataStr) : [];
-        } catch (parseError) {
-            console.error("Erro ao analisar dados do cache local. Usando dados padrão.", parseError);
-            localStorage.removeItem(AULAS_KEY);
-            localStorage.removeItem(EVENTS_KEY);
-            localStorage.removeItem(ELETIVAS_KEY);
-            rawAulas = defaultAulas;
-            rawEvents = defaultEvents;
-            rawEletivas = defaultEletivas;
-        }
-
-        // **FIX:** Garante que, se o cache estiver vazio, os dados padrão sejam carregados.
-        if (!rawAulas || rawAulas.length === 0) {
-            rawAulas = defaultAulas;
-        }
-        if (!rawEvents || rawEvents.length === 0) {
-            rawEvents = defaultEvents;
-        }
-         if (!rawEletivas || rawEletivas.length === 0) {
-            rawEletivas = defaultEletivas;
+            const localData = localStorage.getItem(AULAS_KEY);
+            const parsed = localData ? JSON.parse(localData) : null;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                finalAulas = parsed;
+            } else {
+                finalAulas = defaultAulas;
+            }
+        } catch (e) {
+            localStorage.removeItem(AULAS_KEY); // Limpa cache corrompido
+            finalAulas = defaultAulas;
         }
     }
 
+    // 3. Decide a fonte final para EVENTOS
+    if (networkEvents) {
+        finalEvents = networkEvents;
+        localStorage.setItem(EVENTS_KEY, JSON.stringify(finalEvents));
+    } else {
+        try {
+            const localData = localStorage.getItem(EVENTS_KEY);
+            const parsed = localData ? JSON.parse(localData) : null;
+            finalEvents = Array.isArray(parsed) ? parsed : defaultEvents;
+        } catch (e) {
+            localStorage.removeItem(EVENTS_KEY);
+            finalEvents = defaultEvents;
+        }
+    }
+    
+    // 4. Decide a fonte final para ELETIVAS
+     if (networkEletivas) {
+        finalEletivas = networkEletivas;
+        localStorage.setItem(ELETIVAS_KEY, JSON.stringify(finalEletivas));
+    } else {
+        try {
+            const localData = localStorage.getItem(ELETIVAS_KEY);
+            const parsed = localData ? JSON.parse(localData) : null;
+            finalEletivas = Array.isArray(parsed) ? parsed : defaultEletivas;
+        } catch (e) {
+            localStorage.removeItem(ELETIVAS_KEY);
+            finalEletivas = defaultEletivas;
+        }
+    }
 
-    // Higieniza os dados no carregamento para garantir consistência de tipos.
-    const aulas: AulaEntry[] = rawAulas.map((row: any) => {
-        // Procura a chave de observação de forma robusta, com ou sem "ç".
+    // --- Higienização dos Dados ---
+    const aulas: AulaEntry[] = finalAulas.map((row: any) => {
         const obsKey = Object.keys(row).find(k => {
             const lowerK = k.toLowerCase().trim();
             return lowerK === 'observação' || lowerK === 'observacao';
@@ -190,7 +218,7 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         };
     });
     
-    const events: Event[] = rawEvents.map((row: any): Event => ({
+    const events: Event[] = finalEvents.map((row: any): Event => ({
         periodo: String(row.periodo ?? '').trim(),
         data: String(row.data ?? '').trim(),
         data_fim: String(row.data_fim ?? '').trim(),
@@ -202,7 +230,7 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         grupo: String(row.grupo ?? '').trim(),
     }));
 
-    const eletivas: EletivaEntry[] = rawEletivas.map((row: any): EletivaEntry => ({
+    const eletivas: EletivaEntry[] = finalEletivas.map((row: any): EletivaEntry => ({
         disciplina: String(row.modulo ?? '').trim(),
         dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
         horario_inicio: String(row.horario_inicio ?? '').trim(),
