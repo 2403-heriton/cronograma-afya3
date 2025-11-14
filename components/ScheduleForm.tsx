@@ -116,8 +116,8 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
             const isLastSelection = index === selections.length - 1;
 
             return (
-              <div key={selection.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                <div className="md:col-span-4">
+              <div key={selection.id} className="flex flex-col md:flex-row md:items-end gap-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                <div className="w-full md:flex-1">
                   <SelectInput
                     id={`modulo-${selection.id}`}
                     label={`Módulo ${index + 1}`}
@@ -127,7 +127,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
                     disabled={availableModules.length === 0}
                   />
                 </div>
-                <div className="md:col-span-4">
+                <div className="w-full md:flex-1">
                   <SelectInput
                     id={`grupo-${selection.id}`}
                     label={`Grupo ${index + 1}`}
@@ -137,14 +137,13 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
                     disabled={!selection.modulo || groupOptions.length === 0}
                   />
                 </div>
-                <div className="md:col-span-4">
-                  <label className="mb-2 hidden md:block text-sm font-medium text-transparent select-none">&nbsp;</label>
-                  <div className="flex gap-2 w-full">
+                <div className="w-full md:w-auto">
+                  <div className="flex gap-2">
                     {selections.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeSelection(selection.id)}
-                        className="w-full bg-afya-pink text-white font-semibold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors duration-200"
+                        className="bg-afya-pink text-white font-semibold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors duration-200"
                         aria-label={`Remover seleção ${index + 1}`}
                       >
                         Remover
@@ -155,7 +154,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
                         type="button"
                         onClick={addSelection}
                         disabled={selectedModules.length >= availableModules.length}
-                        className="w-full bg-gray-700 border border-gray-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-gray-700 border border-gray-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         + Módulo
                       </button>

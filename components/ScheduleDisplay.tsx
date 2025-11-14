@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import type { Schedule, DiaDeAula, Aula } from '../types';
 import { stringToColor } from '../services/colorService';
@@ -66,13 +65,22 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
           {aula.tipo && <AulaInfo icon={<ClipboardListIcon className="w-4 h-4" />} label="Tipo" value={aula.tipo} />}
           <AulaInfo icon={<LocationIcon className="w-4 h-4" />} label="Sala" value={aula.sala} />
           {aula.professor && <AulaInfo icon={<UserIcon className="w-4 h-4" />} label="Professor" value={aula.professor} />}
-          {aula.observacao && <AulaInfo icon={<InfoIcon className="w-4 h-4" />} label="Observação" value={aula.observacao} />}
         </div>
       </div>
 
-      {aula.events && aula.events.length > 0 && (
+      {/* Seção de rodapé para observações e eventos */}
+      {(aula.observacao || (aula.events && aula.events.length > 0)) && (
         <div className="mt-3 pt-3 border-t border-gray-600/50 space-y-2">
-          {aula.events.map((event, index) => (
+          {/* Caixa de destaque para observações */}
+          {aula.observacao && (
+             <div className="flex items-start gap-2 text-sm text-yellow-300 bg-yellow-900/30 p-2 rounded-md border border-yellow-500/40">
+               <InfoIcon className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
+               <p className="flex-grow">{aula.observacao}</p>
+            </div>
+          )}
+          
+          {/* Lista de eventos associados */}
+          {aula.events && aula.events.map((event, index) => (
             <div key={index} className="flex items-start gap-2 text-sm text-amber-300 bg-amber-900/20 p-2 rounded-md">
                <CalendarIcon className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                <div className="flex-grow">
