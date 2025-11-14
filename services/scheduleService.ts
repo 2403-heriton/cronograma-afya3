@@ -404,9 +404,9 @@ export const getUniqueGroupsForModule = (periodo: string, modulo: string, allAul
         const isNumA = !isNaN(Number(partA));
         const isNumB = !isNaN(Number(partB));
         
-        // Se ambos são números, ordena do maior para o menor
+        // Se ambos são números, ordena do menor para o maior
         if (isNumA && isNumB) {
-            return Number(partB) - Number(partA);
+            return Number(partA) - Number(partB);
         }
         
         // Se ambos são strings (letras), ordena de A a Z
@@ -468,19 +468,24 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 
                 const processedAulasData = processRows(aulasSheet);
                 
-                const aulasData: AulaEntry[] = processedAulasData.map((row: any): AulaEntry => ({
-                    periodo: String(row['periodo'] ?? '').trim(),
-                    modulo: String(row['modulo'] ?? '').trim(),
-                    grupo: String(row['grupo'] ?? '').trim(),
-                    dia_semana: normalizeDayOfWeek(String(row['dia_semana'] ?? '').trim()),
-                    disciplina: String(row['disciplina'] ?? '').trim(),
-                    sala: String(row['sala'] ?? '').trim(),
-                    horario_inicio: formatExcelTime(row['horario_inicio']),
-                    horario_fim: formatExcelTime(row['horario_fim']),
-                    tipo: String(row['tipo'] ?? row['tipo de aula'] ?? '').trim(),
-                    professor: String(row['professor'] ?? row['docente'] ?? '').trim(),
-                    observacao: String(row['observação'] ?? row['observacao'] ?? row['observações'] ?? '').trim(),
-                }));
+                const aulasData: AulaEntry[] = processedAulasData.map((row: any): AulaEntry => {
+                    const obsKey = Object.keys(row).find(k => k === 'observação' || k === 'observacao' || k === 'observações');
+                    const observacaoValue = obsKey ? row[obsKey] : '';
+
+                    return {
+                        periodo: String(row['periodo'] ?? '').trim(),
+                        modulo: String(row['modulo'] ?? '').trim(),
+                        grupo: String(row['grupo'] ?? '').trim(),
+                        dia_semana: normalizeDayOfWeek(String(row['dia_semana'] ?? '').trim()),
+                        disciplina: String(row['disciplina'] ?? '').trim(),
+                        sala: String(row['sala'] ?? '').trim(),
+                        horario_inicio: formatExcelTime(row['horario_inicio']),
+                        horario_fim: formatExcelTime(row['horario_fim']),
+                        tipo: String(row['tipo'] ?? row['tipo de aula'] ?? '').trim(),
+                        professor: String(row['professor'] ?? row['docente'] ?? '').trim(),
+                        observacao: String(observacaoValue ?? '').trim(),
+                    };
+                });
                 
                 let eventsData: Event[] = [];
                 if (eventosSheet) {
