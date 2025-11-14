@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { fetchSchedule, getUniqueModulesForPeriod, fetchEvents, initializeAndLoadData, getUniquePeriods, getUniqueGroupsForModule, getUniqueEletivas } from './services/scheduleService';
 import type { Schedule, ModuleSelection, Event, AulaEntry, EletivaEntry } from './types';
@@ -211,6 +210,8 @@ const App: React.FC = () => {
     setSearched(false);
     setError(null);
     setView('schedule');
+    // Reseta as seleções para que o useEffect as preencha com os novos padrões do período
+    setSelections([{ id: Date.now(), modulo: '', grupo: '' }]);
   };
 
   const handleSearch = useCallback(async () => {

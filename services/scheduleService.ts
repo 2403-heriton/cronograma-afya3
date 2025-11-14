@@ -207,7 +207,7 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
     const aulas: AulaEntry[] = finalAulas.map((row: any) => {
         const obsKey = Object.keys(row).find(k => {
             const lowerK = k.toLowerCase().trim();
-            return lowerK === 'observação' || lowerK === 'observacao';
+            return lowerK === 'observação' || lowerK === 'observacao' || lowerK === 'observações';
         });
         const observacaoValue = obsKey ? row[obsKey] : '';
 
@@ -394,7 +394,34 @@ export const getUniqueGroupsForModule = (periodo: string, modulo: string, allAul
         .map(entry => entry.grupo);
     
     const uniqueGroups = [...new Set(groups)];
-    uniqueGroups.sort();
+    
+    uniqueGroups.sort((a, b) => {
+        const extractPart = (s: string) => s.split('-').pop()?.trim() || s;
+        
+        const partA = extractPart(a);
+        const partB = extractPart(b);
+        
+        const isNumA = !isNaN(Number(partA));
+        const isNumB = !isNaN(Number(partB));
+        
+        // Se ambos são números, ordena do maior para o menor
+        if (isNumA && isNumB) {
+            return Number(partB) - Number(partA);
+        }
+        
+        // Se ambos são strings (letras), ordena de A a Z
+        if (!isNumA && !isNumB) {
+            return partA.localeCompare(partB);
+        }
+
+        // Se misturado, coloca letras antes de números
+        if (isNumA) return 1;
+        if (isNumB) return -1;
+
+        // Fallback para o caso de algo inesperado
+        return a.localeCompare(b);
+    });
+
     return uniqueGroups;
 };
 
@@ -452,7 +479,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     horario_fim: formatExcelTime(row['horario_fim']),
                     tipo: String(row['tipo'] ?? row['tipo de aula'] ?? '').trim(),
                     professor: String(row['professor'] ?? row['docente'] ?? '').trim(),
-                    observacao: String(row['observação'] ?? row['observacao'] ?? '').trim(),
+                    observacao: String(row['observação'] ?? row['observacao'] ?? row['observações'] ?? '').trim(),
                 }));
                 
                 let eventsData: Event[] = [];
