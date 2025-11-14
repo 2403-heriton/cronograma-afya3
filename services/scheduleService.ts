@@ -1,11 +1,13 @@
-import type { Schedule, DiaDeAula, ModuleSelection, Aula, Event, AulaEntry } from "../types";
-import { defaultAulas, defaultEvents } from "./initialData";
+
+import type { Schedule, DiaDeAula, ModuleSelection, Aula, Event, AulaEntry, EletivaEntry } from "../types";
+import { defaultAulas, defaultEvents, defaultEletivas } from "./initialData";
 
 // Permite o uso da biblioteca XLSX carregada via tag de script
 declare var XLSX: any;
 
 const AULAS_KEY = 'afya-schedule-aulas';
 const EVENTS_KEY = 'afya-schedule-events';
+const ELETIVAS_KEY = 'afya-schedule-eletivas';
 
 // Helper to interpret dates in DD/MM/AAAA format safely
 const parseBrDate = (dateString: string): Date => {
@@ -92,39 +94,42 @@ const normalizePeriodo = (periodo: string): string => {
 }
 
 
-export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], events: Event[] }> => {
+export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], events: Event[], eletivas: EletivaEntry[] }> => {
     let rawAulas: any[] = [];
     let rawEvents: any[] = [];
+    let rawEletivas: any[] = [];
 
     // Prioriza a busca de dados da rede para garantir que os usuários obtenham a versão mais recente.
     try {
         const cacheBuster = `?t=${Date.now()}`;
-        const [aulasResponse, eventosResponse, avaliacoesResponse] = await Promise.all([
+        const [aulasResponse, eventosResponse, avaliacoesResponse, eletivasResponse] = await Promise.all([
             fetch(`/aulas.json${cacheBuster}`),
             fetch(`/eventos.json${cacheBuster}`),
             fetch(`/avaliacoes.json${cacheBuster}`), // Tenta buscar avaliações também
+            fetch(`/eletivas.json${cacheBuster}`), // Busca eletivas
         ]);
         
         if (!aulasResponse.ok) {
              throw new Error(`Falha na busca do servidor por aulas.json. Status: ${aulasResponse.status}`);
         }
         
-        const aulasJson = await aulasResponse.json();
-        rawAulas = aulasJson;
+        rawAulas = await aulasResponse.json();
         
         // Processa eventos e avaliações, tratando o caso de um deles não existir (404)
         if (eventosResponse.ok) {
-            const eventosJson = await eventosResponse.json();
-            rawEvents = rawEvents.concat(eventosJson);
+            rawEvents = rawEvents.concat(await eventosResponse.json());
         }
         if (avaliacoesResponse.ok) {
-            const avaliacoesJson = await avaliacoesResponse.json();
-            rawEvents = rawEvents.concat(avaliacoesJson);
+            rawEvents = rawEvents.concat(await avaliacoesResponse.json());
+        }
+        if (eletivasResponse.ok) {
+            rawEletivas = await eletivasResponse.json();
         }
 
         // Atualiza o localStorage com os dados mais recentes para fallback offline.
         localStorage.setItem(AULAS_KEY, JSON.stringify(rawAulas));
         localStorage.setItem(EVENTS_KEY, JSON.stringify(rawEvents));
+        localStorage.setItem(ELETIVAS_KEY, JSON.stringify(rawEletivas));
 
     } catch (error) {
         // Se a busca na rede falhar (ex: offline, CORS), tenta carregar do cache local.
@@ -132,24 +137,21 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         
         const aulasDataStr = localStorage.getItem(AULAS_KEY);
         const eventsDataStr = localStorage.getItem(EVENTS_KEY);
+        const eletivasDataStr = localStorage.getItem(ELETIVAS_KEY);
 
-        if (aulasDataStr && eventsDataStr) {
-            try {
-                rawAulas = JSON.parse(aulasDataStr);
-                rawEvents = JSON.parse(eventsDataStr);
-            } catch (parseError) {
-                console.error("Erro ao analisar dados do cache local. Usando dados padrão.", parseError);
-                // Limpa o cache corrompido para evitar erros futuros
-                localStorage.removeItem(AULAS_KEY);
-                localStorage.removeItem(EVENTS_KEY);
-                rawAulas = defaultAulas;
-                rawEvents = defaultEvents;
-            }
-        } else {
-            // Se o cache local também falhar, usa os dados padrão incluídos no build.
-            console.warn("Cache local vazio, usando dados padrão.");
+        try {
+            rawAulas = aulasDataStr ? JSON.parse(aulasDataStr) : defaultAulas;
+            rawEvents = eventsDataStr ? JSON.parse(eventsDataStr) : defaultEvents;
+            rawEletivas = eletivasDataStr ? JSON.parse(eletivasDataStr) : defaultEletivas;
+        } catch (parseError) {
+            console.error("Erro ao analisar dados do cache local. Usando dados padrão.", parseError);
+            // Limpa o cache corrompido para evitar erros futuros
+            localStorage.removeItem(AULAS_KEY);
+            localStorage.removeItem(EVENTS_KEY);
+            localStorage.removeItem(ELETIVAS_KEY);
             rawAulas = defaultAulas;
             rawEvents = defaultEvents;
+            rawEletivas = defaultEletivas;
         }
     }
 
@@ -166,9 +168,10 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         horario_fim: String(row.horario_fim ?? '').trim(),
         tipo: String(row.tipo ?? '').trim(),
         professor: String(row.professor ?? '').trim(),
+        observacao: String(row.observacao ?? '').trim(),
     }));
     
-    const mapRawToEvent = (row: any): Event => ({
+    const events: Event[] = rawEvents.map((row: any): Event => ({
         periodo: String(row.periodo ?? '').trim(),
         data: String(row.data ?? '').trim(),
         data_fim: String(row.data_fim ?? '').trim(),
@@ -178,11 +181,19 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         local: String(row.local ?? '').trim(),
         modulo: String(row.modulo ?? '').trim(),
         grupo: String(row.grupo ?? '').trim(),
-    });
+    }));
 
-    const events: Event[] = rawEvents.map(mapRawToEvent);
+    const eletivas: EletivaEntry[] = rawEletivas.map((row: any): EletivaEntry => ({
+        disciplina: String(row.modulo ?? '').trim(),
+        dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
+        horario_inicio: String(row.horario_inicio ?? '').trim(),
+        horario_fim: String(row.horario_fim ?? '').trim(),
+        professor: String(row.professor ?? '').trim(),
+        sala: String(row.sala ?? '').trim(),
+        tipo: String(row.tipo ?? '').trim(),
+    }));
 
-    return { aulas, events };
+    return { aulas, events, eletivas };
 }
 
 
@@ -205,6 +216,7 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
             modulo: aulaEntry.modulo,
             tipo: aulaEntry.tipo,
             professor: aulaEntry.professor,
+            observacao: aulaEntry.observacao,
         };
         scheduleMap[dia].aulas.push(aula);
     });
@@ -221,16 +233,41 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
 };
 
 
-export const fetchSchedule = (periodo: string, selections: Omit<ModuleSelection, 'id'>[], allAulas: AulaEntry[]): Schedule | null => {
+export const fetchSchedule = (
+    periodo: string, 
+    selections: Omit<ModuleSelection, 'id'>[], 
+    selectedEletivas: string[],
+    allAulas: AulaEntry[],
+    allEletivas: EletivaEntry[]
+): Schedule | null => {
     const matchingAulas = allAulas.filter(aula => 
         String(aula.periodo) === String(periodo) &&
         selections.some(sel => sel.modulo === aula.modulo && sel.grupo === aula.grupo)
     );
 
-    if (matchingAulas.length === 0) return null;
+    const matchingEletivasAsAulaEntries: AulaEntry[] = allEletivas
+        .filter(eletiva => selectedEletivas.includes(eletiva.disciplina))
+        .map((eletiva): AulaEntry => ({
+            periodo: periodo,
+            modulo: 'Eletiva',
+            grupo: eletiva.disciplina,
+            dia_semana: eletiva.dia_semana,
+            disciplina: eletiva.disciplina,
+            sala: eletiva.sala,
+            horario_inicio: eletiva.horario_inicio,
+            horario_fim: eletiva.horario_fim,
+            tipo: eletiva.tipo,
+            professor: eletiva.professor,
+            observacao: '',
+        }));
 
-    return groupAulasIntoSchedule(matchingAulas);
+    const combinedAulas = [...matchingAulas, ...matchingEletivasAsAulaEntries];
+
+    if (combinedAulas.length === 0) return null;
+
+    return groupAulasIntoSchedule(combinedAulas);
 };
+
 
 export const getUniqueModulesForPeriod = (periodo: string, allAulas: AulaEntry[]): string[] => {
     const modulesForPeriod = allAulas
@@ -306,8 +343,15 @@ export const getUniqueGroupsForModule = (periodo: string, modulo: string, allAul
     return uniqueGroups;
 };
 
+export const getUniqueEletivas = (allEletivas: EletivaEntry[]): string[] => {
+    const eletivas = allEletivas.map(e => e.disciplina);
+    const uniqueEletivas = [...new Set(eletivas)];
+    uniqueEletivas.sort();
+    return uniqueEletivas;
+};
 
-export const updateDataFromExcel = async (file: File): Promise<{ aulasData: AulaEntry[], eventsData: Event[], eventsSheetName: string | undefined }> => {
+
+export const updateDataFromExcel = async (file: File): Promise<{ aulasData: AulaEntry[], eventsData: Event[], eletivasData: EletivaEntry[], eventsSheetName: string | undefined }> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -316,6 +360,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 
                 const aulasSheet = workbook.Sheets['Aulas'];
+                const eletivasSheet = workbook.Sheets['Eletivas'];
                 const eventosSheetName = workbook.SheetNames.find(name => {
                     const lowerCaseName = name.toLowerCase().trim();
                     return lowerCaseName === 'eventos' || lowerCaseName === 'avaliações';
@@ -352,24 +397,37 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                     horario_fim: formatExcelTime(row.horario_fim),
                     tipo: String(row.tipo ?? row['tipo de aula'] ?? '').trim(),
                     professor: String(row.professor ?? row.docente ?? '').trim(),
+                    observacao: String(row.observacao ?? '').trim(),
                 }));
                 
-                const mapRowToEvent = (row: any): Event => ({
-                    periodo: String(row.periodo ?? '').trim(),
-                    data: formatExcelDate(row['data inicio']),
-                    data_fim: formatExcelDate(row['data fim']),
-                    horario: formatExcelTime(row.horario),
-                    disciplina: String(row.disciplina ?? '').trim(),
-                    tipo: String(row.tipo ?? '').trim(),
-                    local: String(row.local ?? '').trim(),
-                    modulo: String(row.modulo ?? '').trim(),
-                    grupo: String(row.grupo ?? '').trim(),
-                });
-
                 let eventsData: Event[] = [];
                 if (eventosSheet) {
                     const processedEventsData = processRows(eventosSheet);
-                    eventsData = processedEventsData.map(mapRowToEvent);
+                    eventsData = processedEventsData.map((row: any): Event => ({
+                        periodo: String(row.periodo ?? '').trim(),
+                        data: formatExcelDate(row.data ?? row['data inicio']),
+                        data_fim: formatExcelDate(row['data fim']),
+                        horario: formatExcelTime(row.horario),
+                        disciplina: String(row.disciplina ?? '').trim(),
+                        tipo: String(row.tipo ?? '').trim(),
+                        local: String(row.local ?? '').trim(),
+                        modulo: String(row.modulo ?? '').trim(),
+                        grupo: String(row.grupo ?? '').trim(),
+                    }));
+                }
+                
+                let eletivasData: EletivaEntry[] = [];
+                if (eletivasSheet) {
+                    const processedEletivasData = processRows(eletivasSheet);
+                    eletivasData = processedEletivasData.map((row: any): EletivaEntry => ({
+                        disciplina: String(row.modulo ?? '').trim(),
+                        dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
+                        sala: String(row.sala ?? '').trim(),
+                        horario_inicio: formatExcelTime(row.horario_inicio),
+                        horario_fim: formatExcelTime(row.horario_fim),
+                        tipo: String(row.tipo ?? '').trim(),
+                        professor: String(row.professor ?? row.docente ?? '').trim(),
+                    }));
                 }
 
                 // Validação de cabeçalhos
@@ -379,11 +437,16 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 if (eventosSheet && eventsData.length > 0 && (!eventsData[0].data || !eventsData[0].tipo)) {
                    return reject(new Error(`Formato incorreto na aba '${eventosSheetName}'. Verifique os cabeçalhos.`));
                 }
+                 if (eletivasSheet && eletivasData.length > 0 && (!eletivasData[0].disciplina || !eletivasData[0].dia_semana)) {
+                   return reject(new Error("Formato incorreto na aba 'Eletivas'. Verifique os cabeçalhos."));
+                }
+
 
                 localStorage.setItem(AULAS_KEY, JSON.stringify(aulasData));
                 localStorage.setItem(EVENTS_KEY, JSON.stringify(eventsData));
+                localStorage.setItem(ELETIVAS_KEY, JSON.stringify(eletivasData));
 
-                resolve({ aulasData, eventsData, eventsSheetName: eventosSheetName });
+                resolve({ aulasData, eventsData, eletivasData, eventsSheetName: eventosSheetName });
             } catch (error) {
                 console.error("Erro ao processar planilha:", error);
                 reject(new Error('Falha ao ler o arquivo. Verifique se ele não está corrompido.'));

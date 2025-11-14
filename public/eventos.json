@@ -1,11 +1,12 @@
+
 [
   {
     "periodo": "1º Período",
     "data": "20/12/2025",
-    "data_fim": "20/12/2025",
+    "data_fim": "22/12/2025",
     "horario": "18:00",
     "disciplina": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
-    "tipo": "Palestra",
+    "tipo": "Semana de Palestras",
     "local": "Auditório",
     "modulo": "MÉTODOS CIENTÍFICOS EM MEDICINA I",
     "grupo": "GRUPO - B"
@@ -13,165 +14,10 @@
   {
     "periodo": "Geral",
     "data": "21/12/2025",
-    "data_fim": "21/12/2025",
     "horario": "19:00",
     "disciplina": "Fire Circus",
     "tipo": "MasterClass",
     "local": "Auditório multiuso",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "Geral",
-    "data": "05/01/2026",
-    "data_fim": "19/01/2026",
-    "horario": "-",
-    "disciplina": "Férias Docente",
-    "tipo": "Férias Docente",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "Geral",
-    "data": "20/01/2026",
-    "data_fim": "23/01/2026",
-    "horario": "-",
-    "disciplina": "Semana de Desenvolvimento Docente (SDD)",
-    "tipo": "Semana de Desenvolvimento Docente (SDD)",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "Geral",
-    "data": "26/01/2026",
-    "data_fim": "04/07/2026",
-    "horario": "08:00",
-    "disciplina": "Início do Semestre Letivo",
-    "tipo": "Início do Semestre Letivo",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "Geral",
-    "data": "26/01/2026",
-    "data_fim": "05/07/2026",
-    "horario": "08:00",
-    "disciplina": "Início do internato",
-    "tipo": "Início do internato",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "Geral",
-    "data": "27/01/2026",
-    "data_fim": "30/01/2026",
-    "horario": "08:00",
-    "disciplina": "Acolhimento",
-    "tipo": "Acolhimento",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "Geral",
-    "data": "11/02/2026",
-    "data_fim": "12/02/2026",
-    "horario": "08:00",
-    "disciplina": "Simulado ENAMED 2026.1",
-    "tipo": "Simulado",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "1º Período",
-    "data": "30/03/2026",
-    "data_fim": "10/04/2026",
-    "horario": "08:00",
-    "disciplina": "N1 - Medicina",
-    "tipo": "Avaliação",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "2º Período",
-    "data": "30/03/2026",
-    "data_fim": "10/04/2026",
-    "horario": "09:00",
-    "disciplina": "N1 - Medicina",
-    "tipo": "Avaliação",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "3º Período",
-    "data": "30/03/2026",
-    "data_fim": "10/04/2026",
-    "horario": "10:00",
-    "disciplina": "N1 - Medicina",
-    "tipo": "Avaliação",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "4º Período",
-    "data": "30/03/2026",
-    "data_fim": "10/04/2026",
-    "horario": "11:00",
-    "disciplina": "N1 - Medicina",
-    "tipo": "Avaliação",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "5º Período",
-    "data": "30/03/2026",
-    "data_fim": "10/04/2026",
-    "horario": "12:00",
-    "disciplina": "N1 - Medicina",
-    "tipo": "Avaliação",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "6º Período",
-    "data": "30/03/2026",
-    "data_fim": "10/04/2026",
-    "horario": "13:00",
-    "disciplina": "N1 - Medicina",
-    "tipo": "Avaliação",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "7º Período",
-    "data": "30/03/2026",
-    "data_fim": "10/04/2026",
-    "horario": "14:00",
-    "disciplina": "N1 - Medicina",
-    "tipo": "Avaliação",
-    "local": "FCM-PB",
-    "modulo": "-",
-    "grupo": "Geral"
-  },
-  {
-    "periodo": "8º Período",
-    "data": "30/03/2026",
-    "data_fim": "10/04/2026",
-    "horario": "15:00",
-    "disciplina": "N1 - Medicina",
-    "tipo": "Avaliação",
-    "local": "FCM-PB",
     "modulo": "-",
     "grupo": "Geral"
   }

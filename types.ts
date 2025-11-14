@@ -7,6 +7,7 @@ export interface Aula {
   tipo?: string;
   professor?: string;
   events?: Event[];
+  observacao?: string;
 }
 
 // Representa uma entrada de aula individual como está no aulas.json
@@ -21,6 +22,18 @@ export interface AulaEntry {
   sala: string;
   tipo?: string;
   professor?: string;
+  observacao?: string;
+}
+
+// Representa uma entrada de disciplina eletiva
+export interface EletivaEntry {
+  disciplina: string; // Mapeado da coluna 'modulo' na planilha de eletivas
+  dia_semana: string;
+  horario_inicio: string;
+  horario_fim: string;
+  professor?: string;
+  sala: string;
+  tipo?: string;
 }
 
 export interface DiaDeAula {

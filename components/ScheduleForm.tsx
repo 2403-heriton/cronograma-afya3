@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { ModuleSelection, AulaEntry } from '../types';
 import { getUniqueGroupsForModule } from '../services/scheduleService';
 
@@ -14,6 +14,9 @@ interface ScheduleFormProps {
   updateSelection: (id: number, field: 'modulo' | 'grupo', value: string) => void;
   onSearch: () => void;
   isLoading: boolean;
+  availableEletivas: string[];
+  selectedEletivas: string[];
+  onEletivaChange: (eletiva: string, isChecked: boolean) => void;
 }
 
 const SelectInput: React.FC<{
@@ -51,13 +54,43 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
   updateSelection,
   onSearch,
   isLoading,
+  availableEletivas,
+  selectedEletivas,
+  onEletivaChange,
 }) => {
+  const [eletivaToAdd, setEletivaToAdd] = useState('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch();
   };
 
   const selectedModules = useMemo(() => selections.map(s => s.modulo), [selections]);
+
+  const unselectedEletivas = useMemo(() =>
+    availableEletivas.filter(e => !selectedEletivas.includes(e)),
+    [availableEletivas, selectedEletivas]
+  );
+  
+  useEffect(() => {
+    // Define o valor padrão do dropdown para a primeira eletiva disponível
+    if (unselectedEletivas.length > 0) {
+      setEletivaToAdd(unselectedEletivas[0]);
+    } else {
+      setEletivaToAdd('');
+    }
+  }, [unselectedEletivas]);
+
+  const handleAddEletiva = () => {
+    if (eletivaToAdd) {
+      onEletivaChange(eletivaToAdd, true);
+    }
+  };
+
+  const handleRemoveEletiva = (eletiva: string) => {
+    onEletivaChange(eletiva, false);
+  };
+
 
   return (
     <div className="bg-gray-800/70 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700/50">
@@ -122,6 +155,57 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
             );
           })}
         </div>
+        
+        {availableEletivas.length > 0 && (
+          <>
+            <hr className="my-6 border-gray-700" />
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-200 mb-4 text-center">Disciplinas Eletivas (Opcional)</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end max-w-lg mx-auto">
+                <div className="md:col-span-2">
+                    <SelectInput
+                        id="eletiva-select"
+                        label="Selecione a disciplina"
+                        value={eletivaToAdd}
+                        onChange={(e) => setEletivaToAdd(e.target.value)}
+                        options={unselectedEletivas}
+                        disabled={unselectedEletivas.length === 0}
+                    />
+                </div>
+                <button
+                    type="button"
+                    onClick={handleAddEletiva}
+                    disabled={!eletivaToAdd}
+                    className="w-full bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Adicionar
+                </button>
+              </div>
+
+              {selectedEletivas.length > 0 && (
+                  <div className="mt-4 max-w-lg mx-auto p-3 bg-gray-900/50 rounded-lg border border-gray-700">
+                      <h4 className="text-sm font-medium text-gray-300 mb-2">Disciplinas selecionadas:</h4>
+                      <div className="flex flex-wrap gap-2">
+                          {selectedEletivas.map(eletiva => (
+                              <div key={eletiva} className="flex items-center gap-2 bg-afya-blue/80 text-white text-sm font-medium pl-3 pr-2 py-1 rounded-full">
+                                  <span>{eletiva}</span>
+                                  <button
+                                      type="button"
+                                      onClick={() => handleRemoveEletiva(eletiva)}
+                                      className="text-white/70 hover:text-white font-bold leading-none"
+                                      aria-label={`Remover ${eletiva}`}
+                                  >
+                                      &times;
+                                  </button>
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+              )}
+            </div>
+          </>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
             <button

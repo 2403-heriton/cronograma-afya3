@@ -1,0 +1,30 @@
+
+[
+  {
+    "modulo": "LIBRAS",
+    "dia_semana": "Sexta-feira",
+    "horario_inicio": "13:00",
+    "horario_fim": "14:40",
+    "professor": "Prof. Eletiva 1",
+    "sala": "Sala Eletiva 1",
+    "tipo": "Teórica"
+  },
+  {
+    "modulo": "Medicina e Arte",
+    "dia_semana": "Sexta-feira",
+    "horario_inicio": "15:00",
+    "horario_fim": "16:40",
+    "professor": "Prof. Eletiva 2",
+    "sala": "Sala Eletiva 2",
+    "tipo": "Prática"
+  },
+  {
+    "modulo": "Gestão em Saúde",
+    "dia_semana": "Quarta-feira",
+    "horario_inicio": "18:00",
+    "horario_fim": "19:40",
+    "professor": "Prof. Eletiva 3",
+    "sala": "Online",
+    "tipo": "Teórica"
+  }
+]

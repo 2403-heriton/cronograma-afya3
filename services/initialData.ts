@@ -1,4 +1,5 @@
-import type { AulaEntry, Event } from '../types';
+
+import type { AulaEntry, Event, EletivaEntry } from '../types';
 
 // Dados padrão para fallback, garantindo que o aplicativo funcione offline na primeira inicialização.
 export const defaultAulas: AulaEntry[] = [
@@ -12,7 +13,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
     "tipo": "Prática",
-    "professor": "Dr. House"
+    "professor": "Dr. House",
+    "observacao": "Trazer material de laboratório."
   },
   {
     "periodo": "1º Período",
@@ -24,7 +26,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
     "tipo": "Teórica",
-    "professor": "Dr. House"
+    "professor": "Dr. House",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -36,7 +39,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "13:00",
     "horario_fim": "18:00",
     "tipo": "Simulação",
-    "professor": "Dra. Grey"
+    "professor": "Dra. Grey",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -48,7 +52,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. House"
+    "professor": "Dr. House",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -60,7 +65,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "10:45",
     "tipo": "Simulação",
-    "professor": "Dr. Wilson"
+    "professor": "Dr. Wilson",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -72,7 +78,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. Smith"
+    "professor": "Dr. Smith",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -84,7 +91,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. Smith"
+    "professor": "Dr. Smith",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -96,7 +104,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. Smith"
+    "professor": "Dr. Smith",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -108,7 +117,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "08:00",
     "horario_fim": "09:40",
     "tipo": "Simulação",
-    "professor": "Dr. Smith"
+    "professor": "Dr. Smith",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -120,7 +130,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
     "tipo": "Simulação",
-    "professor": "Dra. Yang"
+    "professor": "Dra. Yang",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -132,7 +143,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
     "tipo": "Simulação",
-    "professor": "Dra. Yang"
+    "professor": "Dra. Yang",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -144,7 +156,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
     "tipo": "Prática",
-    "professor": "Dra. Yang"
+    "professor": "Dra. Yang",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -156,7 +169,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "09:40",
     "horario_fim": "11:20",
     "tipo": "Prática",
-    "professor": "Dra. Yang"
+    "professor": "Dra. Yang",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -168,7 +182,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
     "tipo": "Prática",
-    "professor": "Dr. Foreman"
+    "professor": "Dr. Foreman",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -180,7 +195,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
     "tipo": "Prática",
-    "professor": "Dr. Foreman"
+    "professor": "Dr. Foreman",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -192,7 +208,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
     "tipo": "Prática",
-    "professor": "Dr. Foreman"
+    "professor": "Dr. Foreman",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -204,7 +221,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
     "tipo": "Prática",
-    "professor": "Dr. Foreman"
+    "professor": "Dr. Foreman",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -216,7 +234,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
     "tipo": "Teórica",
-    "professor": "Dr. Chase"
+    "professor": "Dr. Chase",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -228,7 +247,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
     "tipo": "Teórica",
-    "professor": "Dr. Chase"
+    "professor": "Dr. Chase",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -240,7 +260,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "13:00",
     "horario_fim": "14:40",
     "tipo": "Teórica",
-    "professor": "Dr. Chase"
+    "professor": "Dr. Chase",
+    "observacao": ""
   },
   {
     "periodo": "1º Período",
@@ -252,7 +273,8 @@ export const defaultAulas: AulaEntry[] = [
     "horario_inicio": "14:50",
     "horario_fim": "16:30",
     "tipo": "Teórica",
-    "professor": "Dr. Chase"
+    "professor": "Dr. Chase",
+    "observacao": ""
   }
 ];
 
@@ -278,5 +300,26 @@ export const defaultEvents: Event[] = [
     "local": "Auditório multiuso",
     "modulo": "-",
     "grupo": "Geral"
+  }
+];
+
+export const defaultEletivas: EletivaEntry[] = [
+  {
+    "disciplina": "LIBRAS",
+    "dia_semana": "Sexta-feira",
+    "horario_inicio": "13:00",
+    "horario_fim": "14:40",
+    "professor": "Prof. Eletiva 1",
+    "sala": "Sala Eletiva 1",
+    "tipo": "Teórica"
+  },
+  {
+    "disciplina": "Medicina e Arte",
+    "dia_semana": "Sexta-feira",
+    "horario_inicio": "15:00",
+    "horario_fim": "16:40",
+    "professor": "Prof. Eletiva 2",
+    "sala": "Sala Eletiva 2",
+    "tipo": "Prática"
   }
 ];

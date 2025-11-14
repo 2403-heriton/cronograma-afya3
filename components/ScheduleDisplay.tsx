@@ -10,6 +10,7 @@ import BookIcon from './icons/BookIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import ClipboardListIcon from './icons/ClipboardListIcon';
 import UserIcon from './icons/UserIcon';
+import InfoIcon from './icons/InfoIcon';
 
 // Local types for rendering logic
 type HorarioLivre = {
@@ -21,8 +22,8 @@ type ScheduleItem = Aula | HorarioLivre;
 
 
 const AulaInfo: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="flex items-center gap-2 text-sm text-gray-400">
-    <span className="text-gray-400">{icon}</span>
+  <div className="flex items-start gap-2 text-sm text-gray-400">
+    <span className="text-gray-400 mt-0.5 shrink-0">{icon}</span>
     <span><strong className="font-medium text-gray-300">{label}:</strong> {value}</span>
   </div>
 );
@@ -58,6 +59,7 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
           {aula.tipo && <AulaInfo icon={<ClipboardListIcon className="w-4 h-4" />} label="Tipo" value={aula.tipo} />}
           <AulaInfo icon={<LocationIcon className="w-4 h-4" />} label="Sala" value={aula.sala} />
           {aula.professor && <AulaInfo icon={<UserIcon className="w-4 h-4" />} label="Professor" value={aula.professor} />}
+          {aula.observacao && <AulaInfo icon={<InfoIcon className="w-4 h-4" />} label="Observação" value={aula.observacao} />}
         </div>
       </div>
 

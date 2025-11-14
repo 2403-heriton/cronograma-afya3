@@ -1,12 +1,14 @@
+
 import React, { useState, useRef } from 'react';
 import { updateDataFromExcel } from '../services/scheduleService';
 import UploadIcon from './icons/UploadIcon';
 import DownloadIcon from './icons/DownloadIcon';
-import type { AulaEntry, Event } from '../types';
+import type { AulaEntry, Event, EletivaEntry } from '../types';
 
 interface UploadData {
   aulasData: AulaEntry[];
   eventsData: Event[];
+  eletivasData: EletivaEntry[];
   eventsSheetName?: string;
 }
 
@@ -20,7 +22,7 @@ const ADMIN_PASSWORD = "afyaadmin2024";
 const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
-    const [generatedFiles, setGeneratedFiles] = useState<{ aulas: string; eventos: string; } | null>(null);
+    const [generatedFiles, setGeneratedFiles] = useState<{ aulas: string; eventos: string; eletivas: string; } | null>(null);
     const [eventsSourceSheet, setEventsSourceSheet] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,6 +76,7 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
             setGeneratedFiles({
                 aulas: JSON.stringify(parsedData.aulasData, null, 2),
                 eventos: JSON.stringify(parsedData.eventsData, null, 2),
+                eletivas: JSON.stringify(parsedData.eletivasData, null, 2),
             });
             setEventsSourceSheet(parsedData.eventsSheetName || null);
 
@@ -129,13 +132,20 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
                         <h4 className="font-semibold text-white mb-1">Arquivos Gerados</h4>
                         <p className="text-xs text-gray-400">Para disponibilizar estes dados para todos, baixe os arquivos e substitua os existentes na pasta <code>/public</code> do projeto.</p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <button 
                             onClick={() => downloadJson(generatedFiles.aulas, 'aulas.json')}
                             className="flex items-center justify-center gap-2 bg-afya-blue hover:bg-opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
                         >
                             <DownloadIcon className="w-4 h-4" />
                             Baixar aulas.json
+                        </button>
+                        <button 
+                            onClick={() => downloadJson(generatedFiles.eletivas, 'eletivas.json')}
+                            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                        >
+                            <DownloadIcon className="w-4 h-4" />
+                            Baixar eletivas.json
                         </button>
                         <div>
                              <button 
