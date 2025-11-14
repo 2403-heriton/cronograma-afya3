@@ -173,7 +173,11 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         try {
             const localData = localStorage.getItem(EVENTS_KEY);
             const parsed = localData ? JSON.parse(localData) : null;
-            finalEvents = Array.isArray(parsed) ? parsed : defaultEvents;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                finalEvents = parsed;
+            } else {
+                finalEvents = defaultEvents;
+            }
         } catch (e) {
             localStorage.removeItem(EVENTS_KEY);
             finalEvents = defaultEvents;
@@ -188,7 +192,11 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         try {
             const localData = localStorage.getItem(ELETIVAS_KEY);
             const parsed = localData ? JSON.parse(localData) : null;
-            finalEletivas = Array.isArray(parsed) ? parsed : defaultEletivas;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                finalEletivas = parsed;
+            } else {
+                finalEletivas = defaultEletivas;
+            }
         } catch (e) {
             localStorage.removeItem(ELETIVAS_KEY);
             finalEletivas = defaultEletivas;
