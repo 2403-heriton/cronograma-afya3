@@ -442,32 +442,32 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 const processedAulasData = processRows(aulasSheet);
                 
                 const aulasData: AulaEntry[] = processedAulasData.map((row: any): AulaEntry => ({
-                    periodo: String(row.periodo ?? '').trim(),
-                    modulo: String(row.modulo ?? '').trim(),
-                    grupo: String(row.grupo ?? '').trim(),
-                    dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
-                    disciplina: String(row.disciplina ?? '').trim(),
-                    sala: String(row.sala ?? '').trim(),
-                    horario_inicio: formatExcelTime(row.horario_inicio),
-                    horario_fim: formatExcelTime(row.horario_fim),
-                    tipo: String(row.tipo ?? row['tipo de aula'] ?? '').trim(),
-                    professor: String(row.professor ?? row.docente ?? '').trim(),
-                    observacao: String(row.observação ?? row.observacao ?? '').trim(),
+                    periodo: String(row['periodo'] ?? '').trim(),
+                    modulo: String(row['modulo'] ?? '').trim(),
+                    grupo: String(row['grupo'] ?? '').trim(),
+                    dia_semana: normalizeDayOfWeek(String(row['dia_semana'] ?? '').trim()),
+                    disciplina: String(row['disciplina'] ?? '').trim(),
+                    sala: String(row['sala'] ?? '').trim(),
+                    horario_inicio: formatExcelTime(row['horario_inicio']),
+                    horario_fim: formatExcelTime(row['horario_fim']),
+                    tipo: String(row['tipo'] ?? row['tipo de aula'] ?? '').trim(),
+                    professor: String(row['professor'] ?? row['docente'] ?? '').trim(),
+                    observacao: String(row['observação'] ?? row['observacao'] ?? '').trim(),
                 }));
                 
                 let eventsData: Event[] = [];
                 if (eventosSheet) {
                     const processedEventsData = processRows(eventosSheet);
                     eventsData = processedEventsData.map((row: any): Event => ({
-                        periodo: String(row.periodo ?? '').trim(),
-                        data: formatExcelDate(row.data ?? row['data inicio']),
+                        periodo: String(row['periodo'] ?? '').trim(),
+                        data: formatExcelDate(row['data'] ?? row['data inicio']),
                         data_fim: formatExcelDate(row['data fim']),
-                        horario: formatExcelTime(row.horario),
-                        disciplina: String(row.disciplina ?? '').trim(),
-                        tipo: String(row.tipo ?? '').trim(),
-                        local: String(row.local ?? '').trim(),
-                        modulo: String(row.modulo ?? '').trim(),
-                        grupo: String(row.grupo ?? '').trim(),
+                        horario: formatExcelTime(row['horario']),
+                        disciplina: String(row['disciplina'] ?? '').trim(),
+                        tipo: String(row['tipo'] ?? '').trim(),
+                        local: String(row['local'] ?? '').trim(),
+                        modulo: String(row['modulo'] ?? '').trim(),
+                        grupo: String(row['grupo'] ?? '').trim(),
                     }));
                 }
                 
@@ -475,13 +475,13 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 if (eletivasSheet) {
                     const processedEletivasData = processRows(eletivasSheet);
                     eletivasData = processedEletivasData.map((row: any): EletivaEntry => ({
-                        disciplina: String(row.modulo ?? '').trim(),
-                        dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
-                        sala: String(row.sala ?? '').trim(),
-                        horario_inicio: formatExcelTime(row.horario_inicio),
-                        horario_fim: formatExcelTime(row.horario_fim),
-                        tipo: String(row.tipo ?? '').trim(),
-                        professor: String(row.professor ?? row.docente ?? '').trim(),
+                        disciplina: String(row['modulo'] ?? '').trim(),
+                        dia_semana: normalizeDayOfWeek(String(row['dia_semana'] ?? '').trim()),
+                        sala: String(row['sala'] ?? '').trim(),
+                        horario_inicio: formatExcelTime(row['horario_inicio']),
+                        horario_fim: formatExcelTime(row['horario_fim']),
+                        tipo: String(row['tipo'] ?? '').trim(),
+                        professor: String(row['professor'] ?? row['docente'] ?? '').trim(),
                     }));
                 }
 
