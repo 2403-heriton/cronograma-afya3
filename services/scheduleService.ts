@@ -157,19 +157,25 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
 
 
     // Higieniza os dados no carregamento para garantir consistência de tipos.
-    const aulas: AulaEntry[] = rawAulas.map((row: any) => ({
-        periodo: String(row.periodo ?? '').trim(),
-        modulo: String(row.modulo ?? '').trim(),
-        grupo: String(row.grupo ?? '').trim(),
-        dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
-        disciplina: String(row.disciplina ?? '').trim(),
-        sala: String(row.sala ?? '').trim(),
-        horario_inicio: String(row.horario_inicio ?? '').trim(),
-        horario_fim: String(row.horario_fim ?? '').trim(),
-        tipo: String(row.tipo ?? '').trim(),
-        professor: String(row.professor ?? '').trim(),
-        observacao: String(row.observacao ?? '').trim(),
-    }));
+    const aulas: AulaEntry[] = rawAulas.map((row: any) => {
+        // Procura a chave de observação de forma insensível a maiúsculas/minúsculas para robustez.
+        const obsKey = Object.keys(row).find(k => k.toLowerCase().trim() === 'observacao');
+        const observacaoValue = obsKey ? row[obsKey] : '';
+
+        return {
+            periodo: String(row.periodo ?? '').trim(),
+            modulo: String(row.modulo ?? '').trim(),
+            grupo: String(row.grupo ?? '').trim(),
+            dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
+            disciplina: String(row.disciplina ?? '').trim(),
+            sala: String(row.sala ?? '').trim(),
+            horario_inicio: String(row.horario_inicio ?? '').trim(),
+            horario_fim: String(row.horario_fim ?? '').trim(),
+            tipo: String(row.tipo ?? '').trim(),
+            professor: String(row.professor ?? '').trim(),
+            observacao: String(observacaoValue ?? '').trim(),
+        };
+    });
     
     const events: Event[] = rawEvents.map((row: any): Event => ({
         periodo: String(row.periodo ?? '').trim(),
