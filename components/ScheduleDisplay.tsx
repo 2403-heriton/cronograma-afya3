@@ -73,8 +73,8 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
         <div className="mt-3 pt-3 border-t border-gray-600/50 space-y-2">
           {/* Caixa de destaque para observações */}
           {aula.observacao && (
-             <div className="flex items-start gap-2 text-sm text-yellow-300 bg-yellow-900/30 p-2 rounded-md border border-yellow-500/40">
-               <InfoIcon className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
+             <div className="flex items-start gap-3 text-sm text-amber-200 bg-amber-900/40 p-3 rounded-lg border-l-4 border-amber-500">
+               <InfoIcon className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
                <p className="flex-grow">{aula.observacao}</p>
             </div>
           )}
