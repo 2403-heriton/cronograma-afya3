@@ -1,5 +1,6 @@
+
 import React, { useMemo } from 'react';
-import type { ModuleSelection, AulaEntry, EletivaSelection } from '../types';
+import type { ModuleSelection, AulaEntry } from '../types';
 import { getUniqueGroupsForModule } from '../services/scheduleService';
 
 interface ScheduleFormProps {
@@ -15,17 +16,18 @@ interface ScheduleFormProps {
   onSearch: () => void;
   isLoading: boolean;
   availableEletivas: string[];
-  eletivaSelections: EletivaSelection[];
-  addEletivaSelection: () => void;
-  removeEletivaSelection: (id: number) => void;
-  updateEletivaSelection: (id: number, value: string) => void;
+  selectedEletivas: string[];
+  addEletiva: () => void;
+  removeEletiva: (disciplina: string) => void;
+  eletivaToAdd: string;
+  setEletivaToAdd: (value: string) => void;
 }
 
 const SelectInput: React.FC<{
   label: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  options: string[];
+  options: (string | { value: string; label: string; disabled?: boolean })[];
   id: string;
   disabled?: boolean;
 }> = ({ label, value, onChange, options, id, disabled = false }) => (
@@ -39,7 +41,12 @@ const SelectInput: React.FC<{
       className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-afya-blue focus:border-afya-blue transition duration-150 ease-in-out appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {options.length === 0 && <option>Nenhuma opção disponível</option>}
-      {options.map(option => <option key={option} value={option} className="bg-gray-800">{option}</option>)}
+      {options.map(option => {
+        if (typeof option === 'string') {
+          return <option key={option} value={option} className="bg-gray-800">{option}</option>
+        }
+        return <option key={option.value} value={option.value} disabled={option.disabled} className="bg-gray-800 disabled:text-gray-500">{option.label}</option>
+      })}
     </select>
   </div>
 );
@@ -57,10 +64,11 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
   onSearch,
   isLoading,
   availableEletivas,
-  eletivaSelections,
-  addEletivaSelection,
-  removeEletivaSelection,
-  updateEletivaSelection,
+  selectedEletivas,
+  addEletiva,
+  removeEletiva,
+  eletivaToAdd,
+  setEletivaToAdd,
 }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,7 +77,17 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
   };
 
   const selectedModules = useMemo(() => selections.map(s => s.modulo), [selections]);
-  const selectedEletivas = useMemo(() => eletivaSelections.map(s => s.disciplina), [eletivaSelections]);
+  
+  const eletivaOptions = useMemo(() => {
+    const available = availableEletivas
+        .filter(e => !selectedEletivas.includes(e))
+        .sort();
+    return [
+      { value: '', label: 'Selecione a disciplina', disabled: true },
+      ...available.map(e => ({ value: e, label: e }))
+    ];
+  }, [availableEletivas, selectedEletivas]);
+
 
   return (
     <div className="bg-gray-800/70 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700/50">
@@ -95,9 +113,10 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
             ).sort();
             
             const groupOptions = getUniqueGroupsForModule(periodo, selection.modulo, allAulas);
+            const isLastSelection = index === selections.length - 1;
 
             return (
-              <div key={selection.id} className="grid grid-cols-1 md:grid-cols-10 gap-4 items-end p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+              <div key={selection.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end p-4 bg-gray-900/50 rounded-lg border border-gray-700">
                 <div className="md:col-span-4">
                   <SelectInput
                     id={`modulo-${selection.id}`}
@@ -118,87 +137,88 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
                     disabled={!selection.modulo || groupOptions.length === 0}
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="md:col-span-4">
                   <label className="mb-2 hidden md:block text-sm font-medium text-transparent select-none">&nbsp;</label>
-                  {selections.length > 1 ? (
-                    <button
-                      type="button"
-                      onClick={() => removeSelection(selection.id)}
-                      className="w-full bg-afya-pink text-white font-semibold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors duration-200"
-                      aria-label={`Remover seleção ${index + 1}`}
-                    >
-                      Remover
-                    </button>
-                  ) : <div className="h-[50px]"></div>}
+                  <div className="flex gap-2 w-full">
+                    {selections.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSelection(selection.id)}
+                        className="w-full bg-afya-pink text-white font-semibold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors duration-200"
+                        aria-label={`Remover seleção ${index + 1}`}
+                      >
+                        Remover
+                      </button>
+                    )}
+                    {isLastSelection && (
+                       <button
+                        type="button"
+                        onClick={addSelection}
+                        disabled={selectedModules.length >= availableModules.length}
+                        className="w-full bg-gray-700 border border-gray-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        + Módulo
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
-        
-        <div className="flex justify-end mt-4">
-            <button
-              type="button"
-              onClick={addSelection}
-              disabled={selectedModules.length >= availableModules.length}
-              className="bg-gray-700 border border-gray-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              + Adicionar Módulo
-            </button>
-        </div>
-
 
         {availableEletivas.length > 0 && (
           <>
             <hr className="my-6 border-gray-700" />
             <h3 className="text-lg font-semibold text-gray-200 mb-4">Disciplinas Eletivas (Opcional)</h3>
-            <div className="space-y-4">
-              {eletivaSelections.map((selection, index) => {
-                const eletivaOptions = availableEletivas.filter(
-                  eletiva => !selectedEletivas.includes(eletiva) || eletiva === selection.disciplina
-                ).sort();
 
-                const optionsWithPlaceholder = selection.disciplina ? eletivaOptions : ['Selecione uma eletiva', ...eletivaOptions];
-
-                return (
-                  <div key={selection.id} className="grid grid-cols-1 md:grid-cols-10 gap-4 items-end p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                    <div className="md:col-span-8">
-                      <SelectInput
-                        id={`eletiva-${selection.id}`}
-                        label={`Eletiva ${index + 1}`}
-                        value={selection.disciplina}
-                        onChange={(e) => updateEletivaSelection(selection.id, e.target.value)}
-                        options={optionsWithPlaceholder}
-                        disabled={availableEletivas.length === 0}
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="mb-2 hidden md:block text-sm font-medium text-transparent select-none">&nbsp;</label>
-                      {eletivaSelections.length > 1 ? (
-                        <button
-                          type="button"
-                          onClick={() => removeEletivaSelection(selection.id)}
-                          className="w-full bg-afya-pink text-white font-semibold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors duration-200"
-                          aria-label={`Remover eletiva ${index + 1}`}
-                        >
-                          Remover
-                        </button>
-                      ) : <div className="h-[50px]"></div>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex justify-end mt-4">
-                <button
-                    type="button"
-                    onClick={addEletivaSelection}
-                    disabled={selectedEletivas.length >= availableEletivas.length}
-                    className="bg-gray-700 border border-gray-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            <div className="flex items-end gap-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                <div className="flex-grow">
+                    <SelectInput
+                        id="eletiva-select"
+                        label="Selecione a disciplina"
+                        value={eletivaToAdd}
+                        onChange={(e) => setEletivaToAdd(e.target.value)}
+                        options={eletivaOptions}
+                        disabled={eletivaOptions.length <= 1}
+                    />
+                </div>
+                <div>
+                    <label className="mb-2 hidden md:block text-sm font-medium text-transparent select-none">&nbsp;</label>
+                    <button
+                        type="button"
+                        onClick={addEletiva}
+                        disabled={!eletivaToAdd}
+                        className="w-full bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Adicionar disciplina eletiva"
                     >
-                    + Adicionar Eletiva
-                </button>
+                        Adicionar
+                    </button>
+                </div>
             </div>
+
+            {selectedEletivas.length > 0 && (
+                <div className="mt-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                    <h4 className="text-sm font-medium text-gray-300 mb-3">Eletivas selecionadas:</h4>
+                    <div className="flex flex-wrap gap-2">
+                    {selectedEletivas.map(eletiva => (
+                        <div key={eletiva} className="flex items-center gap-2 bg-afya-blue/80 text-white text-sm font-medium pl-3 pr-2 py-1 rounded-full animate-fade-in" style={{ animationDuration: '0.3s' }}>
+                        <span>{eletiva}</span>
+                        <button
+                            type="button"
+                            onClick={() => removeEletiva(eletiva)}
+                            className="text-blue-200 hover:text-white hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                            aria-label={`Remover ${eletiva}`}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+            )}
           </>
         )}
         

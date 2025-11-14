@@ -53,7 +53,14 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
       style={{ borderLeftColor: color }}
     >
       <div>
-        <p className="font-bold text-white mb-2">{aula.disciplina}</p>
+        <div className="flex justify-between items-start gap-2 mb-2">
+            <p className="font-bold text-white flex-grow">{aula.disciplina}</p>
+            {aula.modulo === 'Eletiva' && (
+                <span className="flex-shrink-0 bg-afya-pink text-white text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">
+                    Eletiva
+                </span>
+            )}
+        </div>
         <div className="space-y-1">
           <AulaInfo icon={<ClockIcon className="w-4 h-4" />} label="Horário" value={aula.horario} />
           {aula.tipo && <AulaInfo icon={<ClipboardListIcon className="w-4 h-4" />} label="Tipo" value={aula.tipo} />}
@@ -198,7 +205,7 @@ const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
 
 
 const ScheduleDisplay: React.FC<{ schedule: Schedule | null }> = ({ schedule }) => {
-  if (!schedule) {
+  if (!schedule || schedule.length === 0) {
     return (
       <div className="text-center text-gray-400 p-8 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
         <NotFoundIcon className="w-16 h-16 mx-auto text-gray-500 mb-4" />

@@ -232,7 +232,7 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
             modulo: aulaEntry.modulo,
             tipo: aulaEntry.tipo,
             professor: aulaEntry.professor,
-            observacao: aulaEntry.observacao,
+            observacao: aulaEntry.observacao, // FIX: Garante que a observação seja repassada.
         };
         scheduleMap[dia].aulas.push(aula);
     });

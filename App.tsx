@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { fetchSchedule, getUniqueModulesForPeriod, fetchEvents, initializeAndLoadData, getUniquePeriods, getUniqueGroupsForModule, getUniqueEletivas } from './services/scheduleService';
-import type { Schedule, ModuleSelection, Event, AulaEntry, EletivaEntry, EletivaSelection } from './types';
+import type { Schedule, ModuleSelection, Event, AulaEntry, EletivaEntry } from './types';
 import ScheduleForm from './components/ScheduleForm';
 import AfyaLogo from './components/icons/AfyaLogo';
 import SpinnerIcon from './components/icons/SpinnerIcon';
@@ -39,9 +39,11 @@ const App: React.FC = () => {
   const [selections, setSelections] = useState<ModuleSelection[]>([
     { id: Date.now(), modulo: '', grupo: '' }
   ]);
-  const [eletivaSelections, setEletivaSelections] = useState<EletivaSelection[]>([
-    { id: Date.now(), disciplina: '' }
-  ]);
+  
+  // Novo estado para a seleção de eletivas
+  const [selectedEletivas, setSelectedEletivas] = useState<string[]>([]);
+  const [eletivaToAdd, setEletivaToAdd] = useState<string>('');
+  
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [events, setEvents] = useState<Event[] | null>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -99,12 +101,13 @@ const App: React.FC = () => {
                 if (savedEletivasJSON) {
                     try {
                         const savedEletivas = JSON.parse(savedEletivasJSON);
-                        if (Array.isArray(savedEletivas) && savedEletivas.length > 0) {
-                             setEletivaSelections(savedEletivas);
+                        // Verifica se é um array de strings
+                        if (Array.isArray(savedEletivas) && savedEletivas.every(item => typeof item === 'string')) {
+                             setSelectedEletivas(savedEletivas);
                         }
                     } catch (e) {
                         console.error("Falha ao analisar eletivas salvas do localStorage", e);
-                        setEletivaSelections([{ id: Date.now(), disciplina: '' }]);
+                        setSelectedEletivas([]);
                     }
                 }
 
@@ -188,25 +191,16 @@ const App: React.FC = () => {
     });
   };
   
-  const addEletivaSelection = () => {
-    const selectedDisciplinas = eletivaSelections.map(s => s.disciplina);
-    const nextAvailableEletiva = availableEletivas.find(e => !selectedDisciplinas.includes(e));
-    if (!nextAvailableEletiva) return; // Todas as eletivas já foram selecionadas
-
-    setEletivaSelections(prev => [
-      ...prev,
-      { id: Date.now(), disciplina: nextAvailableEletiva }
-    ]);
+  // Funções para manipular a nova seleção de eletivas
+  const addEletiva = () => {
+    if (eletivaToAdd && !selectedEletivas.includes(eletivaToAdd)) {
+      setSelectedEletivas(prev => [...prev, eletivaToAdd]);
+      setEletivaToAdd(''); // Reseta o campo de seleção
+    }
   };
 
-  const removeEletivaSelection = (id: number) => {
-    setEletivaSelections(prev => prev.filter(sel => sel.id !== id));
-  };
-
-  const updateEletivaSelection = (id: number, value: string) => {
-    setEletivaSelections(prev =>
-      prev.map(sel => (sel.id === id ? { ...sel, disciplina: value } : sel))
-    );
+  const removeEletiva = (disciplinaToRemove: string) => {
+    setSelectedEletivas(prev => prev.filter(disciplina => disciplina !== disciplinaToRemove));
   };
 
 
@@ -229,7 +223,7 @@ const App: React.FC = () => {
 
     try {
       const selectionsPayload = selections.map(({ id, ...rest }) => rest);
-      const eletivasPayload = eletivaSelections.map(e => e.disciplina).filter(Boolean);
+      const eletivasPayload = selectedEletivas.filter(Boolean);
       const scheduleResult = fetchSchedule(periodo, selectionsPayload, eletivasPayload, allAulas, allEletivas);
       
       const eventsResult = fetchEvents(periodo, selectionsPayload, allEvents);
@@ -253,14 +247,14 @@ const App: React.FC = () => {
       // Salva a busca bem-sucedida no localStorage
       localStorage.setItem(LAST_SEARCH_PERIODO_KEY, periodo);
       localStorage.setItem(LAST_SEARCH_SELECTIONS_KEY, JSON.stringify(selections));
-      localStorage.setItem(LAST_SEARCH_ELETIVAS_KEY, JSON.stringify(eletivaSelections));
+      localStorage.setItem(LAST_SEARCH_ELETIVAS_KEY, JSON.stringify(selectedEletivas));
 
     } catch (e: any) {
       setError(e.message || "Ocorreu um erro desconhecido.");
     } finally {
       setIsLoading(false);
     }
-  }, [periodo, selections, eletivaSelections, allAulas, allEvents, allEletivas]);
+  }, [periodo, selections, selectedEletivas, allAulas, allEvents, allEletivas]);
   
   const handleClearSearch = () => {
     setSearched(false);
@@ -278,7 +272,8 @@ const App: React.FC = () => {
     setEvents(null);
     setSearched(false);
     setError(null);
-    setEletivaSelections([{ id: Date.now(), disciplina: '' }]);
+    setSelectedEletivas([]);
+    setEletivaToAdd('');
 
     if (data.aulasData.length > 0) {
         const periods = getUniquePeriods(data.aulasData);
@@ -332,10 +327,11 @@ const App: React.FC = () => {
           onSearch={handleSearch}
           isLoading={isLoading}
           availableEletivas={availableEletivas}
-          eletivaSelections={eletivaSelections}
-          addEletivaSelection={addEletivaSelection}
-          removeEletivaSelection={removeEletivaSelection}
-          updateEletivaSelection={updateEletivaSelection}
+          selectedEletivas={selectedEletivas}
+          addEletiva={addEletiva}
+          removeEletiva={removeEletiva}
+          eletivaToAdd={eletivaToAdd}
+          setEletivaToAdd={setEletivaToAdd}
         />
         
         {/* --- ÁREA DE RESULTADOS --- */}
