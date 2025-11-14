@@ -1,15 +1,17 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { fetchSchedule, getUniqueModulesForPeriod, fetchEvents, initializeAndLoadData, getUniquePeriods, getUniqueGroupsForModule, getUniqueEletivas } from './services/scheduleService';
-import type { Schedule, ModuleSelection, Event, AulaEntry, EletivaEntry } from './types';
+import type { Schedule, ModuleSelection, Event, AulaEntry, EletivaEntry, EletivaSelection } from './types';
 import ScheduleForm from './components/ScheduleForm';
-import ScheduleDisplay from './components/ScheduleDisplay';
-import EventDisplay from './components/EventDisplay';
 import AfyaLogo from './components/icons/AfyaLogo';
 import SpinnerIcon from './components/icons/SpinnerIcon';
 import CalendarIcon from './components/icons/CalendarIcon';
 import ClockIcon from './components/icons/ClockIcon';
 import DataUploader from './components/DataUploader';
+
+// Lazy load display components for better performance
+const ScheduleDisplay = lazy(() => import('./components/ScheduleDisplay'));
+const EventDisplay = lazy(() => import('./components/EventDisplay'));
 
 // Definição da interface para os dados retornados pelo upload
 interface UploadData {
@@ -37,7 +39,9 @@ const App: React.FC = () => {
   const [selections, setSelections] = useState<ModuleSelection[]>([
     { id: Date.now(), modulo: '', grupo: '' }
   ]);
-  const [selectedEletivas, setSelectedEletivas] = useState<string[]>([]);
+  const [eletivaSelections, setEletivaSelections] = useState<EletivaSelection[]>([
+    { id: Date.now(), disciplina: '' }
+  ]);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [events, setEvents] = useState<Event[] | null>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -62,7 +66,9 @@ const App: React.FC = () => {
             setAllAulas(aulas);
             setAllEvents(events);
             setAllEletivas(eletivas);
-            setAvailableEletivas(getUniqueEletivas(eletivas));
+            
+            const uniqueEletivas = getUniqueEletivas(eletivas);
+            setAvailableEletivas(uniqueEletivas);
 
             if (aulas.length > 0) {
                 const periods = getUniquePeriods(aulas);
@@ -93,11 +99,12 @@ const App: React.FC = () => {
                 if (savedEletivasJSON) {
                     try {
                         const savedEletivas = JSON.parse(savedEletivasJSON);
-                        if (Array.isArray(savedEletivas)) {
-                            setSelectedEletivas(savedEletivas);
+                        if (Array.isArray(savedEletivas) && savedEletivas.length > 0) {
+                             setEletivaSelections(savedEletivas);
                         }
                     } catch (e) {
                         console.error("Falha ao analisar eletivas salvas do localStorage", e);
+                        setEletivaSelections([{ id: Date.now(), disciplina: '' }]);
                     }
                 }
 
@@ -180,18 +187,28 @@ const App: React.FC = () => {
       return newSelections;
     });
   };
+  
+  const addEletivaSelection = () => {
+    const selectedDisciplinas = eletivaSelections.map(s => s.disciplina);
+    const nextAvailableEletiva = availableEletivas.find(e => !selectedDisciplinas.includes(e));
+    if (!nextAvailableEletiva) return; // Todas as eletivas já foram selecionadas
 
-  const handleEletivaChange = (eletiva: string, isChecked: boolean) => {
-    setSelectedEletivas(prev => {
-      const newSet = new Set(prev);
-      if (isChecked) {
-        newSet.add(eletiva);
-      } else {
-        newSet.delete(eletiva);
-      }
-      return Array.from(newSet);
-    });
+    setEletivaSelections(prev => [
+      ...prev,
+      { id: Date.now(), disciplina: nextAvailableEletiva }
+    ]);
   };
+
+  const removeEletivaSelection = (id: number) => {
+    setEletivaSelections(prev => prev.filter(sel => sel.id !== id));
+  };
+
+  const updateEletivaSelection = (id: number, value: string) => {
+    setEletivaSelections(prev =>
+      prev.map(sel => (sel.id === id ? { ...sel, disciplina: value } : sel))
+    );
+  };
+
 
   const handlePeriodoChange = (newPeriodo: string) => {
     setPeriodo(newPeriodo);
@@ -212,7 +229,8 @@ const App: React.FC = () => {
 
     try {
       const selectionsPayload = selections.map(({ id, ...rest }) => rest);
-      const scheduleResult = fetchSchedule(periodo, selectionsPayload, selectedEletivas, allAulas, allEletivas);
+      const eletivasPayload = eletivaSelections.map(e => e.disciplina).filter(Boolean);
+      const scheduleResult = fetchSchedule(periodo, selectionsPayload, eletivasPayload, allAulas, allEletivas);
       
       const eventsResult = fetchEvents(periodo, selectionsPayload, allEvents);
 
@@ -235,14 +253,14 @@ const App: React.FC = () => {
       // Salva a busca bem-sucedida no localStorage
       localStorage.setItem(LAST_SEARCH_PERIODO_KEY, periodo);
       localStorage.setItem(LAST_SEARCH_SELECTIONS_KEY, JSON.stringify(selections));
-      localStorage.setItem(LAST_SEARCH_ELETIVAS_KEY, JSON.stringify(selectedEletivas));
+      localStorage.setItem(LAST_SEARCH_ELETIVAS_KEY, JSON.stringify(eletivaSelections));
 
     } catch (e: any) {
       setError(e.message || "Ocorreu um erro desconhecido.");
     } finally {
       setIsLoading(false);
     }
-  }, [periodo, selections, selectedEletivas, allAulas, allEvents, allEletivas]);
+  }, [periodo, selections, eletivaSelections, allAulas, allEvents, allEletivas]);
   
   const handleClearSearch = () => {
     setSearched(false);
@@ -260,7 +278,7 @@ const App: React.FC = () => {
     setEvents(null);
     setSearched(false);
     setError(null);
-    setSelectedEletivas([]);
+    setEletivaSelections([{ id: Date.now(), disciplina: '' }]);
 
     if (data.aulasData.length > 0) {
         const periods = getUniquePeriods(data.aulasData);
@@ -314,8 +332,10 @@ const App: React.FC = () => {
           onSearch={handleSearch}
           isLoading={isLoading}
           availableEletivas={availableEletivas}
-          selectedEletivas={selectedEletivas}
-          onEletivaChange={handleEletivaChange}
+          eletivaSelections={eletivaSelections}
+          addEletivaSelection={addEletivaSelection}
+          removeEletivaSelection={removeEletivaSelection}
+          updateEletivaSelection={updateEletivaSelection}
         />
         
         {/* --- ÁREA DE RESULTADOS --- */}
@@ -363,11 +383,18 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              {view === 'schedule' ? (
-                <ScheduleDisplay schedule={schedule} />
-              ) : (
-                <EventDisplay events={events} />
-              )}
+              <Suspense fallback={
+                <div className="flex flex-col items-center justify-center text-center text-white pt-10 min-h-[300px]">
+                  <SpinnerIcon className="w-12 h-12 mb-4" />
+                  <p className="text-lg font-semibold">Carregando visualização...</p>
+                </div>
+              }>
+                {view === 'schedule' ? (
+                  <ScheduleDisplay schedule={schedule} />
+                ) : (
+                  <EventDisplay events={events} />
+                )}
+              </Suspense>
             </>
           )}
           {!searched && !isLoading && !error && (

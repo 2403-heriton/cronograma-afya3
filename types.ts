@@ -49,6 +49,11 @@ export interface ModuleSelection {
   grupo: string;
 }
 
+export interface EletivaSelection {
+  id: number;
+  disciplina: string;
+}
+
 export interface Event {
   periodo: string;
   data: string;

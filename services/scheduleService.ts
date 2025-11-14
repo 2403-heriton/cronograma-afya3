@@ -140,17 +140,27 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
         const eletivasDataStr = localStorage.getItem(ELETIVAS_KEY);
 
         try {
-            rawAulas = aulasDataStr ? JSON.parse(aulasDataStr) : defaultAulas;
-            rawEvents = eventsDataStr ? JSON.parse(eventsDataStr) : defaultEvents;
-            rawEletivas = eletivasDataStr ? JSON.parse(eletivasDataStr) : defaultEletivas;
+            rawAulas = aulasDataStr ? JSON.parse(aulasDataStr) : [];
+            rawEvents = eventsDataStr ? JSON.parse(eventsDataStr) : [];
+            rawEletivas = eletivasDataStr ? JSON.parse(eletivasDataStr) : [];
         } catch (parseError) {
             console.error("Erro ao analisar dados do cache local. Usando dados padrão.", parseError);
-            // Limpa o cache corrompido para evitar erros futuros
             localStorage.removeItem(AULAS_KEY);
             localStorage.removeItem(EVENTS_KEY);
             localStorage.removeItem(ELETIVAS_KEY);
             rawAulas = defaultAulas;
             rawEvents = defaultEvents;
+            rawEletivas = defaultEletivas;
+        }
+
+        // **FIX:** Garante que, se o cache estiver vazio, os dados padrão sejam carregados.
+        if (!rawAulas || rawAulas.length === 0) {
+            rawAulas = defaultAulas;
+        }
+        if (!rawEvents || rawEvents.length === 0) {
+            rawEvents = defaultEvents;
+        }
+         if (!rawEletivas || rawEletivas.length === 0) {
             rawEletivas = defaultEletivas;
         }
     }
