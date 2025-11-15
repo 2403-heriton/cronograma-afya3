@@ -320,7 +320,8 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
 
         // Adiciona os intervalos livres entre as aulas.
         for (const aula of sortedAulas) {
-            if (aula.startMinutes > currentTime) {
+            const gapDuration = aula.startMinutes - currentTime;
+            if (gapDuration > 30) {
                 dayScheduleWithGaps.push({
                     isFreeSlot: true,
                     disciplina: 'Horário Livre',
@@ -331,13 +332,12 @@ const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
             }
             
             dayScheduleWithGaps.push(aula);
-            // FIX: This ensures that with overlapping classes, we use the latest end time
-            // to correctly calculate the next free slot.
             currentTime = Math.max(currentTime, aula.endMinutes);
         }
 
         // Adiciona o intervalo livre final, se houver, até o fim do dia.
-        if (currentTime < DAY_END_MINUTES) {
+        const finalGapDuration = DAY_END_MINUTES - currentTime;
+        if (finalGapDuration > 30) {
             dayScheduleWithGaps.push({
                 isFreeSlot: true,
                 disciplina: 'Horário Livre',

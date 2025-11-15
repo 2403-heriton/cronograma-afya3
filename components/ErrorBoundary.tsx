@@ -10,8 +10,8 @@ interface State {
 
 // FIX: To resolve "Property 'props' does not exist", the component is changed to extend the named import 'Component' from React. This ensures correct type inference by TypeScript.
 class ErrorBoundary extends Component<Props, State> {
-  // FIX: Initialize state as a class property for modern React and to resolve type errors.
-  public state: State = { hasError: false };
+  // FIX: Use class property for state initialization. This is a more modern syntax and resolves the "property 'state' does not exist" error.
+  state: State = { hasError: false };
 
   static getDerivedStateFromError(_: Error): State {
     // Atualiza o estado para que a próxima renderização mostre a UI de fallback.

@@ -57,6 +57,7 @@
         top: 50%;
         transform: translateY(-50%);
         height: 100%;
+        width: auto;
         opacity: 0.05;
         z-index: 0;
       }
@@ -108,16 +109,14 @@
       .pdf-export-container .animate-fade-in {
         animation: none !important;
         opacity: 1 !important;
-        break-inside: avoid;
-        page-break-inside: avoid; /* older property for compatibility */
       }
 
       .pdf-export-container .dia-card {
         background-color: transparent !important;
         border-color: #d1d5db !important; /* border-gray-300 */
         box-shadow: none !important;
-        break-inside: avoid;
-        page-break-inside: avoid;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
       }
 
       /* Increase day of week font size */

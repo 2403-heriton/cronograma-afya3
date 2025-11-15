@@ -48,7 +48,7 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
           {aula.disciplina}
         </h4>
         {aula.modulo === 'Eletiva' && (
-          <span className="bg-afya-pink/20 text-afya-pink text-xs font-bold px-2.5 py-1 rounded-md shrink-0 border border-afya-pink/30 tracking-wider">
+          <span className="bg-afya-pink text-white text-xs font-bold px-3 py-1 rounded-full shrink-0 tracking-wider shadow-sm">
             ELETIVA
           </span>
         )}
@@ -165,7 +165,7 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
 
     document.body.appendChild(pdfContainer);
 
-    // Lógica para adicionar marca d'água por página
+    // Lógica para adicionar marca d'água por página simulada no HTML
     const A3_ASPECT_RATIO = 297 / 420; // height / width for landscape
     const contentWidth = pdfContainer.offsetWidth;
     const pageHeightInPx = contentWidth * A3_ASPECT_RATIO;
@@ -173,17 +173,24 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
     const numPages = Math.ceil(totalHeight / pageHeightInPx);
 
     for (let i = 0; i < numPages; i++) {
+        // Cria um wrapper para cada marca d'água que tem o tamanho de uma página
+        const watermarkWrapper = document.createElement('div');
+        watermarkWrapper.style.position = 'absolute';
+        watermarkWrapper.style.top = `${i * pageHeightInPx}px`;
+        watermarkWrapper.style.left = '0';
+        watermarkWrapper.style.width = '100%';
+        watermarkWrapper.style.height = `${pageHeightInPx}px`;
+        watermarkWrapper.style.overflow = 'hidden';
+        watermarkWrapper.style.zIndex = '0';
+
         const watermark = document.createElement('img');
         watermark.src = 'https://cdn.prod.website-files.com/65e07e5b264deb36f6e003d9/6883f05c26e613e478e32cd9_A.png';
         watermark.alt = "Marca d'água Afya";
-        watermark.style.position = 'absolute';
-        watermark.style.right = '48px';
-        watermark.style.top = `${i * pageHeightInPx}px`;
-        watermark.style.height = `${pageHeightInPx}px`;
-        watermark.style.width = 'auto';
-        watermark.style.opacity = '0.05';
-        watermark.style.zIndex = '0';
-        pdfContainer.insertBefore(watermark, pdfContainer.firstChild);
+        watermark.className = 'pdf-watermark'; // A classe CSS fará o resto
+        
+        watermarkWrapper.appendChild(watermark);
+        // Insere o wrapper no container principal
+        pdfContainer.insertBefore(watermarkWrapper, pdfContainer.firstChild);
     }
 
     requestAnimationFrame(async () => {
