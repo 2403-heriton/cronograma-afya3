@@ -48,7 +48,7 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
           {aula.disciplina}
         </h4>
         {aula.modulo === 'Eletiva' && (
-          <span className="bg-purple-900/50 text-purple-300 text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0">
+          <span className="bg-afya-pink/20 text-afya-pink text-xs font-bold px-2.5 py-1 rounded-md shrink-0 border border-afya-pink/30 tracking-wider">
             ELETIVA
           </span>
         )}
@@ -133,18 +133,9 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
   
     setIsGeneratingPdf(true);
   
-    // 1. Cria um contêiner invisível para o conteúdo do PDF.
     const pdfContainer = document.createElement('div');
     pdfContainer.className = 'pdf-export-container';
     
-    // Adiciona a marca d'água
-    const watermark = document.createElement('img');
-    watermark.src = 'https://cdn.prod.website-files.com/65e07e5b264deb36f6e003d9/6883f05c26e613e478e32cd9_A.png';
-    watermark.alt = "Marca d'água Afya";
-    watermark.className = 'pdf-watermark';
-    pdfContainer.appendChild(watermark);
-
-    // 2. Cria e adiciona o cabeçalho do PDF.
     const header = document.createElement('div');
     header.className = 'pdf-header';
     
@@ -159,38 +150,52 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
     header.appendChild(title);
     pdfContainer.appendChild(header);
     
-    // 3. Adiciona o título contextual com o período.
     const scheduleTitle = document.createElement('h2');
     scheduleTitle.className = 'pdf-title';
     scheduleTitle.textContent = `Cronograma para ${periodo}`;
     pdfContainer.appendChild(scheduleTitle);
 
-
-    // 4. Clona o conteúdo do cronograma e o prepara para exportação.
     const contentClone = scheduleContent.cloneNode(true) as HTMLElement;
-    contentClone.removeAttribute('id'); // Remove o ID para evitar duplicatas
+    contentClone.removeAttribute('id');
     const grid = contentClone.querySelector('.grid');
     if (grid) {
       grid.className = 'pdf-export-grid';
     }
     pdfContainer.appendChild(contentClone);
 
-    // 5. Anexa o contêiner preparado ao corpo do documento.
     document.body.appendChild(pdfContainer);
 
-    // 6. Aguarda o próximo frame para garantir que o navegador renderizou o conteúdo clonado.
+    // Lógica para adicionar marca d'água por página
+    const A3_ASPECT_RATIO = 297 / 420; // height / width for landscape
+    const contentWidth = pdfContainer.offsetWidth;
+    const pageHeightInPx = contentWidth * A3_ASPECT_RATIO;
+    const totalHeight = pdfContainer.scrollHeight;
+    const numPages = Math.ceil(totalHeight / pageHeightInPx);
+
+    for (let i = 0; i < numPages; i++) {
+        const watermark = document.createElement('img');
+        watermark.src = 'https://cdn.prod.website-files.com/65e07e5b264deb36f6e003d9/6883f05c26e613e478e32cd9_A.png';
+        watermark.alt = "Marca d'água Afya";
+        watermark.style.position = 'absolute';
+        watermark.style.right = '48px';
+        watermark.style.top = `${i * pageHeightInPx}px`;
+        watermark.style.height = `${pageHeightInPx}px`;
+        watermark.style.width = 'auto';
+        watermark.style.opacity = '0.05';
+        watermark.style.zIndex = '0';
+        pdfContainer.insertBefore(watermark, pdfContainer.firstChild);
+    }
+
     requestAnimationFrame(async () => {
       try {
         const { jsPDF } = window.jspdf;
-        // Renderiza o contêiner invisível em uma imagem canvas.
         const canvas = await html2canvas(pdfContainer, {
-          scale: 2, // Aumenta a resolução para melhor qualidade de impressão
+          scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff'
         });
         const imgData = canvas.toDataURL('image/png');
 
-        // Cria o PDF. A3 (420x297mm) em paisagem.
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'mm',
@@ -216,7 +221,6 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
           heightLeft -= pdfHeight;
         }
 
-        // Abre o PDF em uma nova aba ao invés de baixar.
         const pdfUrl = pdf.output('bloburl');
         window.open(pdfUrl, '_blank');
 
@@ -224,7 +228,6 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
         console.error('Erro ao gerar o PDF:', e);
         alert('Ocorreu um erro ao gerar o PDF. Tente novamente.');
       } finally {
-        // 7. Remove o contêiner temporário do corpo do documento.
         document.body.removeChild(pdfContainer);
         setIsGeneratingPdf(false);
       }

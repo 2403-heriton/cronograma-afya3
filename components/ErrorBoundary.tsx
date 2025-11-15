@@ -1,4 +1,4 @@
-import React, { ErrorInfo, ReactNode } from "react";
+import React, { Component, ErrorInfo, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -8,9 +8,8 @@ interface State {
   hasError: boolean;
 }
 
-// FIX: Changed `extends Component` to `extends React.Component` to resolve a type error
-// where `this.props` was not being recognized.
-class ErrorBoundary extends React.Component<Props, State> {
+// FIX: To resolve "Property 'props' does not exist", the component is changed to extend the named import 'Component' from React. This ensures correct type inference by TypeScript.
+class ErrorBoundary extends Component<Props, State> {
   // FIX: Initialize state as a class property for modern React and to resolve type errors.
   public state: State = { hasError: false };
 
