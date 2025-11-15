@@ -118,10 +118,17 @@
         box-shadow: none !important;
       }
 
+      /* Increase day of week font size */
+      .pdf-export-container .dia-card h3 {
+        font-size: 1.25rem !important; /* text-xl */
+      }
+
       .pdf-export-container .aula-card {
         background-color: transparent !important;
         border-color: #d1d5db; /* border-gray-300 */
         color: #1f2937 !important; /* text-gray-800 */
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
 
       .pdf-export-container .aula-card .text-gray-100,
@@ -130,6 +137,13 @@
       .pdf-export-container .aula-card h4 {
         color: #1f2937 !important; /* text-gray-800 */
       }
+
+      /* Decrease discipline name font size */
+      .pdf-export-container .aula-card h4 {
+        font-size: 0.875rem !important; /* text-sm */
+        line-height: 1.25rem !important;
+      }
+
       .pdf-export-container .aula-card .text-gray-400 {
         color: #4b5563 !important; /* text-gray-600 */
       }
@@ -148,6 +162,8 @@
         background-color: #f0fdf4 !important; /* bg-green-50 */
         border-color: #a7f3d0 !important; /* border-green-200 */
         color: #065f46 !important; /* text-green-800 */
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
 
     </style>
