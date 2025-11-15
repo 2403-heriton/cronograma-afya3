@@ -133,7 +133,7 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
   
     setIsGeneratingPdf(true);
   
-    // 1. Create a container for rendering, but without watermarks in the HTML
+    // 1. Create a container for rendering
     const pdfContainer = document.createElement('div');
     pdfContainer.className = 'pdf-export-container';
     
@@ -172,7 +172,6 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
 
     try {
       const { jsPDF } = window.jspdf;
-      const watermarkSrc = 'https://cdn.prod.website-files.com/65e07e5b264deb36f6e003d9/6883f05c26e613e478e32cd9_A.png';
 
       const canvas = await html2canvas(pdfContainer, {
         scale: 2,
@@ -198,7 +197,6 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
       let position = 0;
 
       // Add first page
-      pdf.addImage(watermarkSrc, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       pdf.addImage(contentImgData, 'PNG', 0, position, pdfWidth, contentHeightInPdfUnits, undefined, 'FAST');
       heightLeft -= pdfHeight;
 
@@ -206,7 +204,6 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
       while (heightLeft > 0) {
         position -= pdfHeight;
         pdf.addPage();
-        pdf.addImage(watermarkSrc, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
         pdf.addImage(contentImgData, 'PNG', 0, position, pdfWidth, contentHeightInPdfUnits, undefined, 'FAST');
         heightLeft -= pdfHeight;
       }
