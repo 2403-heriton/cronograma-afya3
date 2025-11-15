@@ -1,3 +1,4 @@
+
 import type { Schedule, DiaDeAula, ModuleSelection, Aula, Event, AulaEntry, EletivaEntry } from "../types";
 import { defaultAulas, defaultEvents, defaultEletivas } from "./initialData";
 
@@ -9,7 +10,7 @@ const EVENTS_KEY = 'afya-schedule-events';
 const ELETIVAS_KEY = 'afya-schedule-eletivas';
 
 // Helper to interpret dates in DD/MM/AAAA format safely
-const parseBrDate = (dateString: string): Date => {
+export const parseBrDate = (dateString: string): Date => {
   // Return a very early date if the string is invalid, so it doesn't crash and sorts predictably.
   if (!dateString || typeof dateString !== 'string') {
     return new Date(0);
@@ -243,7 +244,7 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
     }));
 
     const eletivas: EletivaEntry[] = finalEletivas.map((row: any): EletivaEntry => ({
-        disciplina: String(row.modulo ?? '').trim(),
+        disciplina: String(row.modulo ?? row.disciplina ?? '').trim(),
         dia_semana: normalizeDayOfWeek(String(row.dia_semana ?? '').trim()),
         horario_inicio: String(row.horario_inicio ?? '').trim(),
         horario_fim: String(row.horario_fim ?? '').trim(),
@@ -257,37 +258,101 @@ export const initializeAndLoadData = async (): Promise<{ aulas: AulaEntry[], eve
 
 
 const groupAulasIntoSchedule = (aulas: AulaEntry[]): Schedule => {
-    const scheduleMap: { [key: string]: DiaDeAula } = {};
-    const weekOrder = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    const weekOrder = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira'];
+    const DAY_START_MINUTES = 8 * 60; // 08:00
+    const DAY_END_MINUTES = 22 * 60; // 22:00
 
-    aulas.forEach(aulaEntry => {
+    const formatMinutes = (totalMinutes: number): string => {
+        const hours = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+        const minutes = (totalMinutes % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    };
+
+    const parseMinutes = (timeStr: string): number => {
+        if (!timeStr || !timeStr.includes(':')) return 0;
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        if (isNaN(hours) || isNaN(minutes)) return 0;
+        return hours * 60 + minutes;
+    };
+
+    // Primeiro, agrupa todas as aulas válidas por dia.
+    const aulasByDay = aulas.reduce<Record<string, Aula[]>>((acc, aulaEntry) => {
         const dia = aulaEntry.dia_semana;
-        if (!dia) return; // Ignora aulas sem dia da semana definido
-        
-        if (!scheduleMap[dia]) {
-            scheduleMap[dia] = { dia: dia, aulas: [] };
+        if (!dia || !aulaEntry.disciplina || aulaEntry.disciplina.trim() === '') {
+            return acc;
         }
 
-        const aula: Aula = {
+        if (!acc[dia]) {
+            acc[dia] = [];
+        }
+
+        acc[dia].push({
             horario: `${aulaEntry.horario_inicio} - ${aulaEntry.horario_fim}`,
             disciplina: aulaEntry.disciplina,
             sala: aulaEntry.sala,
             modulo: aulaEntry.modulo,
             tipo: aulaEntry.tipo,
             professor: aulaEntry.professor,
-            observacao: aulaEntry.observacao, // FIX: Garante que a observação seja repassada.
+            observacao: aulaEntry.observacao,
+        });
+
+        return acc;
+    }, {});
+
+    // Itera sobre os dias da semana para construir um cronograma completo.
+    const finalSchedule: Schedule = weekOrder.map(dayName => {
+        const scheduledAulas = aulasByDay[dayName] || [];
+
+        const sortedAulas = scheduledAulas
+            .map(aula => {
+                const [startStr, endStr] = aula.horario.split(' - ');
+                return {
+                    ...aula,
+                    startMinutes: parseMinutes(startStr.trim()),
+                    endMinutes: parseMinutes(endStr.trim()),
+                };
+            })
+            .filter(aula => aula.startMinutes > 0 && aula.endMinutes > 0 && aula.endMinutes > aula.startMinutes)
+            .sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes);
+
+        const dayScheduleWithGaps: Aula[] = [];
+        let currentTime = DAY_START_MINUTES;
+
+        // Adiciona os intervalos livres entre as aulas.
+        for (const aula of sortedAulas) {
+            if (aula.startMinutes > currentTime) {
+                dayScheduleWithGaps.push({
+                    isFreeSlot: true,
+                    disciplina: 'Horário Livre',
+                    horario: `${formatMinutes(currentTime)} - ${formatMinutes(aula.startMinutes)}`,
+                    sala: '',
+                    modulo: '',
+                });
+            }
+            
+            dayScheduleWithGaps.push(aula);
+            // FIX: This ensures that with overlapping classes, we use the latest end time
+            // to correctly calculate the next free slot.
+            currentTime = Math.max(currentTime, aula.endMinutes);
+        }
+
+        // Adiciona o intervalo livre final, se houver, até o fim do dia.
+        if (currentTime < DAY_END_MINUTES) {
+            dayScheduleWithGaps.push({
+                isFreeSlot: true,
+                disciplina: 'Horário Livre',
+                horario: `${formatMinutes(currentTime)} - ${formatMinutes(DAY_END_MINUTES)}`,
+                sala: '',
+                modulo: '',
+            });
+        }
+
+        return {
+            dia: dayName,
+            aulas: dayScheduleWithGaps,
         };
-        scheduleMap[dia].aulas.push(aula);
     });
-
-    const finalSchedule = Object.values(scheduleMap);
-
-    finalSchedule.forEach(day => {
-        day.aulas.sort((a, b) => a.horario.localeCompare(b.horario));
-    });
-
-    finalSchedule.sort((a, b) => weekOrder.indexOf(a.dia) - weekOrder.indexOf(b.dia));
-
+    
     return finalSchedule;
 };
 
@@ -321,8 +386,6 @@ export const fetchSchedule = (
         }));
 
     const combinedAulas = [...matchingAulas, ...matchingEletivasAsAulaEntries];
-
-    if (combinedAulas.length === 0) return null;
 
     return groupAulasIntoSchedule(combinedAulas);
 };
@@ -473,8 +536,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 const processedAulasData = processRows(aulasSheet);
                 
                 const aulasData: AulaEntry[] = processedAulasData.map((row: any): AulaEntry => {
-                    const obsKey = Object.keys(row).find(k => k === 'observação' || k === 'observacao' || k === 'observações');
-                    const observacaoValue = obsKey ? row[obsKey] : '';
+                    const observacaoValue = row['observação'] || row['observacao'] || row['observações'] || '';
 
                     return {
                         periodo: String(row['periodo'] ?? '').trim(),
@@ -511,7 +573,7 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
                 if (eletivasSheet) {
                     const processedEletivasData = processRows(eletivasSheet);
                     eletivasData = processedEletivasData.map((row: any): EletivaEntry => ({
-                        disciplina: String(row['modulo'] ?? '').trim(),
+                        disciplina: String(row['modulo'] ?? row['disciplina'] ?? '').trim(),
                         dia_semana: normalizeDayOfWeek(String(row['dia_semana'] ?? '').trim()),
                         sala: String(row['sala'] ?? '').trim(),
                         horario_inicio: formatExcelTime(row['horario_inicio']),
@@ -534,8 +596,12 @@ export const updateDataFromExcel = async (file: File): Promise<{ aulasData: Aula
 
 
                 localStorage.setItem(AULAS_KEY, JSON.stringify(aulasData));
-                localStorage.setItem(EVENTS_KEY, JSON.stringify(eventsData));
-                localStorage.setItem(ELETIVAS_KEY, JSON.stringify(eletivasData));
+                if (eventsData.length > 0) {
+                    localStorage.setItem(EVENTS_KEY, JSON.stringify(eventsData));
+                }
+                if (eletivasData.length > 0) {
+                    localStorage.setItem(ELETIVAS_KEY, JSON.stringify(eletivasData));
+                }
 
                 resolve({ aulasData, eventsData, eletivasData, eventsSheetName: eventosSheetName });
             } catch (error) {

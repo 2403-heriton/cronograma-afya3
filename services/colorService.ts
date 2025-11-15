@@ -1,4 +1,3 @@
-
 /**
  * Gera uma cor HSL consistente com base em uma string de entrada (ex: nome da disciplina).
  * Isso garante que cada disciplina sempre tenha a mesma cor.
@@ -7,7 +6,7 @@
  */
 export const stringToColor = (str: string): string => {
   if (!str) {
-    return 'hsl(0, 0%, 50%)'; // Cor cinza padrão para strings vazias
+    return 'hsl(0, 0%, 70%)'; // Cor cinza padrão para strings vazias
   }
 
   let hash = 0;
@@ -16,8 +15,8 @@ export const stringToColor = (str: string): string => {
   }
 
   const hue = hash % 360; // Gera um matiz de 0 a 359
-  const saturation = 70; // Saturação fixa para cores vibrantes, mas não excessivas
-  const lightness = 55;  // Luminosidade fixa para garantir boa legibilidade em fundo escuro
+  const saturation = 60; // Saturação mais suave para tons pastel
+  const lightness = 75;  // Luminosidade maior para cores mais claras
 
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { updateDataFromExcel } from '../services/scheduleService';
 import UploadIcon from './icons/UploadIcon';
@@ -102,12 +101,12 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
             case 'success': return 'text-green-400';
             case 'error': return 'text-red-400';
             case 'loading': return 'text-blue-400';
-            default: return 'text-gray-500';
+            default: return 'text-gray-400';
         }
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-xl border border-gray-700 shadow-lg">
+        <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-4 p-4 bg-slate-800 rounded-xl border border-slate-700 shadow-lg">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -119,7 +118,7 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
             <button
                 onClick={handleButtonClick}
                 disabled={status === 'loading'}
-                className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-2 px-4 rounded-lg transition-colors duration-200 border border-gray-600 disabled:opacity-50 disabled:cursor-wait"
+                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-gray-300 font-semibold py-2 px-4 rounded-lg transition-colors duration-200 border border-slate-600 disabled:opacity-50 disabled:cursor-wait"
             >
                 <UploadIcon className="w-4 h-4" />
                 Atualizar Dados via Planilha
@@ -127,9 +126,9 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
             {message && <p className={`text-sm text-center ${getStatusColor()}`} role="status">{message}</p>}
 
             {status === 'success' && generatedFiles && (
-                <div className="w-full mt-2 p-4 bg-gray-900/50 rounded-lg border border-gray-600 text-center space-y-4">
+                <div className="w-full mt-2 p-4 bg-slate-900/50 rounded-lg border border-slate-700 text-center space-y-4">
                      <div>
-                        <h4 className="font-semibold text-white mb-1">Arquivos Gerados</h4>
+                        <h4 className="font-semibold text-gray-200 mb-1">Arquivos Gerados</h4>
                         <p className="text-xs text-gray-400">Para disponibilizar estes dados para todos, baixe os arquivos e substitua os existentes na pasta <code>/public</code> do projeto.</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -142,7 +141,7 @@ const DataUploader: React.FC<DataUploaderProps> = ({ onUploadSuccess }) => {
                         </button>
                         <button 
                             onClick={() => downloadJson(generatedFiles.eletivas, 'eletivas.json')}
-                            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
                         >
                             <DownloadIcon className="w-4 h-4" />
                             Baixar eletivas.json

@@ -1,243 +1,278 @@
-import React, { useMemo } from 'react';
-import type { Schedule, DiaDeAula, Aula } from '../types';
-import { stringToColor } from '../services/colorService';
+import React, { useState } from 'react';
+import type { Schedule, DiaDeAula, Aula, ModuleSelection } from '../types';
 import ClockIcon from './icons/ClockIcon';
 import LocationIcon from './icons/LocationIcon';
 import NotFoundIcon from './icons/NotFoundIcon';
-import CoffeeIcon from './icons/CoffeeIcon';
-import BookIcon from './icons/BookIcon';
-import CalendarIcon from './icons/CalendarIcon';
 import ClipboardListIcon from './icons/ClipboardListIcon';
 import UserIcon from './icons/UserIcon';
 import InfoIcon from './icons/InfoIcon';
+import ExternalLinkIcon from './icons/ExternalLinkIcon';
+import CoffeeIcon from './icons/CoffeeIcon';
+import BookIcon from './icons/BookIcon';
+import SpinnerIcon from './icons/SpinnerIcon';
+import { stringToColor } from '../services/colorService';
 
-// Local types for rendering logic
-type HorarioLivre = {
-  tipo: 'livre';
-  horario: string;
-  turno: string;
-};
-type ScheduleItem = Aula | HorarioLivre;
+// FIX: Declare global types for jspdf and html2canvas to resolve TypeScript errors for properties on the window object.
+declare global {
+  interface Window {
+    jspdf: {
+      jsPDF: new (options?: any) => any;
+    };
+  }
+  const html2canvas: (
+    element: HTMLElement,
+    options?: any
+  ) => Promise<HTMLCanvasElement>;
+}
 
-
-const AulaInfo: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="flex items-start gap-2 text-sm text-gray-400">
-    <span className="text-gray-400 mt-0.5 shrink-0">{icon}</span>
-    <span><strong className="font-medium text-gray-300">{label}:</strong> {value}</span>
+// Componente de helper para exibir uma linha de informação com ícone
+const AulaInfo: React.FC<{ icon: React.ReactNode; label: string; text: string }> = ({ icon, label, text }) => (
+  <div className="flex items-start gap-2 text-sm">
+    <span className="text-afya-pink flex-shrink-0 w-3 h-3 mt-0.5">{icon}</span>
+    <div className="text-gray-400">
+      <span className="font-semibold text-gray-200">{label}:</span> {text}
+    </div>
   </div>
 );
 
+// Card de aula redesenhado com mais detalhes
 const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
   const color = stringToColor(aula.disciplina);
-  
-  const formatDate = (dateString: string) => {
-    if (!dateString || typeof dateString !== 'string') return "Data Inválida";
-    const parts = dateString.split('/');
-    if (parts.length !== 3) return dateString; // Retorna o original se não for parseável
-    const [day, month, year] = parts.map(Number);
-    if (isNaN(day) || isNaN(month) || isNaN(year) || year < 1970) {
-        return dateString;
-    }
-    const date = new Date(year, month - 1, day);
-    if (isNaN(date.getTime())) {
-        return dateString;
-    }
-    // Retorna a data no formato DD/MM/YYYY
-    return new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo' }).format(date);
-  };
-  
   return (
     <div 
-      className="bg-gray-700/50 p-4 rounded-lg border-l-4 border-t border-r border-b border-gray-600 transition-shadow duration-300 hover:shadow-md hover:bg-gray-700 flex flex-col"
+      className="bg-slate-800 p-4 rounded-lg shadow-md border border-slate-700 border-l-4 aula-card"
       style={{ borderLeftColor: color }}
     >
-      <div>
-        <div className="flex justify-between items-start gap-2 mb-2">
-            <p className="font-bold text-white flex-grow">{aula.disciplina}</p>
-            {aula.modulo === 'Eletiva' && (
-                <span className="flex-shrink-0 bg-afya-pink text-white text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">
-                    Eletiva
-                </span>
-            )}
-        </div>
-        <div className="space-y-1">
-          <AulaInfo icon={<ClockIcon className="w-4 h-4" />} label="Horário" value={aula.horario} />
-          {aula.tipo && <AulaInfo icon={<ClipboardListIcon className="w-4 h-4" />} label="Tipo" value={aula.tipo} />}
-          <AulaInfo icon={<LocationIcon className="w-4 h-4" />} label="Sala" value={aula.sala} />
-          {aula.professor && <AulaInfo icon={<UserIcon className="w-4 h-4" />} label="Professor" value={aula.professor} />}
-        </div>
+      <div className="flex justify-between items-start gap-2 mb-3">
+        <h4 className="font-semibold text-gray-100 text-base leading-tight">
+          {aula.disciplina}
+        </h4>
+        {aula.modulo === 'Eletiva' && (
+          <span className="bg-purple-900/50 text-purple-300 text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0">
+            ELETIVA
+          </span>
+        )}
       </div>
-
-      {/* Seção de rodapé para observações e eventos */}
-      {(aula.observacao || (aula.events && aula.events.length > 0)) && (
-        <div className="mt-3 pt-3 border-t border-gray-600/50 space-y-2">
-          {/* Caixa de destaque para observações */}
-          {aula.observacao && (
-             <div className="flex items-start gap-3 text-sm text-amber-200 bg-amber-900/40 p-3 rounded-lg border-l-4 border-amber-500">
-               <InfoIcon className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-               <p className="flex-grow">{aula.observacao}</p>
+      <div className="space-y-2">
+        <AulaInfo icon={<ClockIcon />} label="Horário" text={aula.horario} />
+        {aula.tipo && <AulaInfo icon={<ClipboardListIcon />} label="Tipo" text={aula.tipo} />}
+        <AulaInfo icon={<LocationIcon />} label="Sala" text={aula.sala} />
+        {aula.professor && <AulaInfo icon={<UserIcon />} label="Professor" text={aula.professor} />}
+      </div>
+      {aula.observacao && (
+        <div className="mt-4 pt-3 border-t border-slate-700">
+            <div className="flex items-start gap-3 text-sm text-amber-300 bg-amber-900/30 p-3 rounded-lg">
+                <InfoIcon className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+                <p>{aula.observacao}</p>
             </div>
-          )}
-          
-          {/* Lista de eventos associados */}
-          {aula.events && aula.events.map((event, index) => (
-            <div key={index} className="flex items-start gap-2 text-sm text-amber-300 bg-amber-900/20 p-2 rounded-md">
-               <CalendarIcon className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-               <div className="flex-grow">
-                 <p className="font-semibold">{event.tipo}</p>
-                 <p className="text-xs text-amber-200">{formatDate(event.data)} às {event.horario}</p>
-               </div>
-            </div>
-          ))}
         </div>
       )}
     </div>
   );
 };
 
-const FreeSlotCard: React.FC<{ slot: HorarioLivre; fullDay?: boolean }> = ({ slot, fullDay }) => (
-    <div className={`bg-green-500/25 p-4 rounded-lg border border-green-500/50 flex items-center justify-center text-center ${fullDay ? 'w-full h-full' : ''}`}>
-        <div className="flex flex-col items-center gap-2 text-green-100">
-            <div className="flex items-center gap-4">
-              <CoffeeIcon className="w-6 h-6" />
-              <BookIcon className="w-6 h-6" />
-            </div>
-            <div >
-                <p className="font-semibold text-white">Horário Livre</p>
-                <p className="text-sm text-green-200">{slot.horario}</p>
-            </div>
-        </div>
+// Card informativo para os intervalos livres - com estilo para dia inteiro
+const FreeSlotCard: React.FC<{ horario: string, isFullDay?: boolean }> = ({ horario, isFullDay = false }) => (
+  <div className={`rounded-lg border text-center p-3 flex flex-col items-center justify-center free-slot-card
+    ${isFullDay 
+      ? 'bg-emerald-950 border-emerald-800 text-emerald-400 flex-grow min-h-[200px]' 
+      : 'bg-emerald-900/60 border-emerald-800 text-emerald-300'
+    }`
+  }>
+    <div className={`flex items-center gap-2 ${isFullDay ? 'mb-2' : 'mb-1'}`}>
+      <CoffeeIcon className={isFullDay ? 'w-6 h-6' : 'w-5 h-5'} />
+      <BookIcon className={isFullDay ? 'w-6 h-6' : 'w-5 h-5'} />
     </div>
+    <p className={`font-semibold ${isFullDay ? 'text-lg' : 'text-sm'}`}>Horário Livre</p>
+    <p className={`${isFullDay ? 'text-sm' : 'text-xs'}`}>{horario}</p>
+  </div>
 );
 
 
+// Card do dia, que agrupa os cards de aula
 const DiaCard: React.FC<{ diaDeAula: DiaDeAula }> = ({ diaDeAula }) => {
-  const scheduleItems = useMemo((): ScheduleItem[] => {
-    // Helper to convert HH:mm string to total minutes from midnight
-    const timeToMinutes = (timeStr: string): number => {
-      if (!timeStr || !timeStr.includes(':')) return -1;
-      const [hours, minutes] = timeStr.split(':').map(Number);
-      if (isNaN(hours) || isNaN(minutes)) return -1;
-      return hours * 60 + minutes;
-    };
-
-    // Helper to convert total minutes to HH:mm string
-    const minutesToTime = (totalMinutes: number): string => {
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-    };
-
-    if (!diaDeAula.aulas || diaDeAula.aulas.length === 0) {
-        return [];
-    }
-    
-    // Day boundaries in minutes
-    const DAY_START_MINUTES = 7 * 60; // 07:00
-    const DAY_END_MINUTES = 22 * 60;   // 22:00
-
-    const parsedAulas = diaDeAula.aulas
-        .map(aula => {
-            const [startStr, endStr] = aula.horario.split(' - ');
-            return {
-                ...aula,
-                startMinutes: timeToMinutes(startStr),
-                endMinutes: timeToMinutes(endStr),
-            };
-        })
-        .filter(aula => aula.startMinutes !== -1 && aula.endMinutes !== -1)
-        .sort((a, b) => a.startMinutes - b.startMinutes);
-
-    const processedItems: ScheduleItem[] = [];
-    let cursorMinutes = DAY_START_MINUTES;
-
-    parsedAulas.forEach(aula => {
-        // Check for a gap before the current class
-        if (aula.startMinutes > cursorMinutes) {
-            processedItems.push({
-                tipo: 'livre',
-                turno: 'Intervalo',
-                horario: `${minutesToTime(cursorMinutes)} - ${minutesToTime(aula.startMinutes)}`,
-            });
-        }
-        // Add the class itself
-        processedItems.push(aula);
-        // Move the cursor to the end of the current class
-        cursorMinutes = aula.endMinutes;
-    });
-
-    // Check for a final free slot at the end of the day
-    if (cursorMinutes < DAY_END_MINUTES) {
-        processedItems.push({
-            tipo: 'livre',
-            turno: 'Intervalo',
-            horario: `${minutesToTime(cursorMinutes)} - ${minutesToTime(DAY_END_MINUTES)}`,
-        });
-    }
-
-    return processedItems;
-  }, [diaDeAula.aulas]);
-
-
-  if (diaDeAula.aulas.length === 0) {
-     return (
-        <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 overflow-hidden flex flex-col h-full">
-            <h3 className="bg-afya-pink text-white text-lg font-semibold p-4 text-center">
-                {diaDeAula.dia}
-            </h3>
-            <div className="p-4 flex-grow flex">
-                <FreeSlotCard slot={{ tipo: 'livre', turno: 'Dia Inteiro', horario: '07:00 - 22:00' }} fullDay={true} />
-            </div>
-        </div>
-     );
-  }
+  const isFullDayFree = diaDeAula.aulas.length === 1 && diaDeAula.aulas[0].isFreeSlot;
 
   return (
-    <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 overflow-hidden flex flex-col h-full">
-      <h3 className="bg-afya-pink text-white text-lg font-semibold p-4 text-center">
+    <div className="bg-slate-800 rounded-xl shadow-lg flex flex-col h-full overflow-hidden border border-slate-700 dia-card">
+      <h3 className="bg-afya-pink text-white font-bold p-3 text-center tracking-wide flex-shrink-0 text-lg">
         {diaDeAula.dia}
       </h3>
-      <div className="p-4 flex-grow space-y-3">
-        {scheduleItems.map((item, index) => {
-            if ('disciplina' in item) { // Type guard for Aula
-              return <AulaCard key={`${item.disciplina}-${index}`} aula={item} />;
-            }
-            // It must be HorarioLivre
-            return <FreeSlotCard key={`${item.turno}-${index}`} slot={item} />;
-          })
-        }
+      <div className={`p-4 space-y-4 flex-grow flex flex-col ${isFullDayFree ? 'h-full' : ''}`}>
+        {diaDeAula.aulas.map((aula, index) =>
+          aula.isFreeSlot ? (
+            <FreeSlotCard 
+              key={`free-${diaDeAula.dia}-${index}`} 
+              horario={aula.horario} 
+              isFullDay={isFullDayFree} 
+            />
+          ) : (
+            <AulaCard key={`${aula.disciplina}-${aula.horario}-${index}`} aula={aula} />
+          )
+        )}
       </div>
     </div>
   );
 };
 
+interface ScheduleDisplayProps {
+  schedule: Schedule | null;
+  periodo: string;
+  selections: ModuleSelection[];
+}
 
-const ScheduleDisplay: React.FC<{ schedule: Schedule | null }> = ({ schedule }) => {
-  if (!schedule || schedule.length === 0) {
+const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, selections }) => {
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleViewPdf = async () => {
+    const scheduleContent = document.getElementById('schedule-pdf-content');
+    if (!scheduleContent) {
+      console.error('Elemento do cronograma não encontrado para gerar o PDF.');
+      return;
+    }
+  
+    setIsGeneratingPdf(true);
+  
+    // 1. Cria um contêiner invisível para o conteúdo do PDF.
+    const pdfContainer = document.createElement('div');
+    pdfContainer.className = 'pdf-export-container';
+    
+    // Adiciona a marca d'água
+    const watermark = document.createElement('img');
+    watermark.src = 'https://cdn.prod.website-files.com/65e07e5b264deb36f6e003d9/6883f05c26e613e478e32cd9_A.png';
+    watermark.alt = "Marca d'água Afya";
+    watermark.className = 'pdf-watermark';
+    pdfContainer.appendChild(watermark);
+
+    // 2. Cria e adiciona o cabeçalho do PDF.
+    const header = document.createElement('div');
+    header.className = 'pdf-header';
+    
+    const logo = document.createElement('img');
+    logo.src = 'https://cdn.cookielaw.org/logos/309bef31-1bad-4222-a8de-b66feda5e113/e1bda879-fe71-4686-b676-cc9fbc711aee/fcb85851-ec61-4efb-bae5-e72fdeacac0e/AFYA-FACULDADEMEDICAS-logo.png';
+    logo.alt = 'Logo Afya Ciências Médicas';
+    logo.className = 'pdf-logo';
+    header.appendChild(logo);
+
+    const title = document.createElement('h1');
+    title.textContent = 'Cronograma de Aulas e Eventos';
+    header.appendChild(title);
+    pdfContainer.appendChild(header);
+    
+    // 3. Adiciona o título contextual com o período.
+    const scheduleTitle = document.createElement('h2');
+    scheduleTitle.className = 'pdf-title';
+    scheduleTitle.textContent = `Cronograma para ${periodo}`;
+    pdfContainer.appendChild(scheduleTitle);
+
+
+    // 4. Clona o conteúdo do cronograma e o prepara para exportação.
+    const contentClone = scheduleContent.cloneNode(true) as HTMLElement;
+    contentClone.removeAttribute('id'); // Remove o ID para evitar duplicatas
+    const grid = contentClone.querySelector('.grid');
+    if (grid) {
+      grid.className = 'pdf-export-grid';
+    }
+    pdfContainer.appendChild(contentClone);
+
+    // 5. Anexa o contêiner preparado ao corpo do documento.
+    document.body.appendChild(pdfContainer);
+
+    // 6. Aguarda o próximo frame para garantir que o navegador renderizou o conteúdo clonado.
+    requestAnimationFrame(async () => {
+      try {
+        const { jsPDF } = window.jspdf;
+        // Renderiza o contêiner invisível em uma imagem canvas.
+        const canvas = await html2canvas(pdfContainer, {
+          scale: 2, // Aumenta a resolução para melhor qualidade de impressão
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+        const imgData = canvas.toDataURL('image/png');
+
+        // Cria o PDF. A3 (420x297mm) em paisagem.
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a3',
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+
+        // Abre o PDF em uma nova aba ao invés de baixar.
+        const pdfUrl = pdf.output('bloburl');
+        window.open(pdfUrl, '_blank');
+
+      } catch (e) {
+        console.error('Erro ao gerar o PDF:', e);
+        alert('Ocorreu um erro ao gerar o PDF. Tente novamente.');
+      } finally {
+        // 7. Remove o contêiner temporário do corpo do documento.
+        document.body.removeChild(pdfContainer);
+        setIsGeneratingPdf(false);
+      }
+    });
+  };
+  
+  const hasClasses = schedule && schedule.some(dia => dia.aulas.some(aula => !aula.isFreeSlot));
+
+  if (!hasClasses) {
     return (
-      <div className="text-center text-gray-400 p-8 bg-gray-800 rounded-2xl shadow-lg border border-gray-700">
+      <div className="text-center p-8 bg-slate-800 rounded-lg shadow-lg border border-slate-700 animate-fade-in">
         <NotFoundIcon className="w-16 h-16 mx-auto text-gray-500 mb-4" />
-        <p className="text-xl font-semibold text-white">Nenhum cronograma encontrado.</p>
+        <p className="text-xl font-semibold text-gray-200">Nenhuma aula encontrada</p>
         <p className="text-md mt-1 text-gray-400">
-          Não encontramos aulas para os filtros selecionados. Tente ajustar sua busca.
+          Não há aulas correspondentes aos filtros selecionados para esta semana.
         </p>
       </div>
     );
   }
 
-  const weekDays = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira'];
-  const completeSchedule = weekDays.map(dayName => {
-      const dayData = schedule.find(d => d.dia === dayName);
-      return dayData || { dia: dayName, aulas: [] };
-  });
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {completeSchedule.map((dia, index) => (
-        <div key={dia.dia} className="animate-fade-in transition-transform duration-300 hover:scale-[1.02]" style={{ animationDelay: `${index * 100}ms` }}>
-           <DiaCard diaDeAula={dia} />
+    <div>
+       <div className="flex justify-end mb-6">
+        <button
+          onClick={handleViewPdf}
+          disabled={isGeneratingPdf}
+          className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-gray-300 font-semibold py-2 px-4 rounded-lg transition-colors duration-200 border border-slate-600 disabled:opacity-50 disabled:cursor-wait shadow-sm"
+        >
+          {isGeneratingPdf ? (
+            <>
+              <SpinnerIcon className="w-4 h-4" /> Gerando PDF...
+            </>
+          ) : (
+            <>
+              <ExternalLinkIcon className="w-4 h-4" /> Visualizar PDF
+            </>
+          )}
+        </button>
+      </div>
+      <div id="schedule-pdf-content">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {schedule.map((dia, index) => (
+            <div key={dia.dia} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+              <DiaCard diaDeAula={dia} />
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 };

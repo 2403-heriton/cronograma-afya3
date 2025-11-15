@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import type { ModuleSelection, AulaEntry } from '../types';
 import { getUniqueGroupsForModule } from '../services/scheduleService';
@@ -32,20 +31,20 @@ const SelectInput: React.FC<{
   disabled?: boolean;
 }> = ({ label, value, onChange, options, id, disabled = false }) => (
   <div className="flex flex-col">
-    <label htmlFor={id} className="mb-2 text-sm font-medium text-gray-300">{label}</label>
+    <label htmlFor={id} className="mb-2 text-sm font-medium text-gray-400">{label}</label>
     <select
       id={id}
       value={value}
       onChange={onChange}
       disabled={disabled}
-      className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-afya-blue focus:border-afya-blue transition duration-150 ease-in-out appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full p-3 bg-slate-700 text-gray-200 border border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-afya-blue focus:border-afya-blue focus:bg-slate-600 transition duration-150 ease-in-out appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {options.length === 0 && <option>Nenhuma opção disponível</option>}
+      {options.length === 0 && <option>Nenhuma opção</option>}
       {options.map(option => {
         if (typeof option === 'string') {
-          return <option key={option} value={option} className="bg-gray-800">{option}</option>
+          return <option key={option} value={option}>{option}</option>
         }
-        return <option key={option.value} value={option.value} disabled={option.disabled} className="bg-gray-800 disabled:text-gray-500">{option.label}</option>
+        return <option key={option.value} value={option.value} disabled={option.disabled} className="disabled:text-gray-500">{option.label}</option>
       })}
     </select>
   </div>
@@ -90,12 +89,13 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
 
 
   return (
-    <div className="bg-gray-800/70 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700/50">
-      <form onSubmit={handleSubmit}>
-        <div className="mb-6">
+    <div className="bg-slate-800 p-6 md:p-8 rounded-lg shadow-lg border border-slate-700">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-200 mb-4">Período</h3>
           <SelectInput
               id="periodo"
-              label="Período"
+              label=""
               value={periodo}
               onChange={(e) => setPeriodo(e.target.value)}
               options={availablePeriods}
@@ -103,75 +103,70 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
             />
         </div>
         
-        <hr className="my-6 border-gray-700" />
-        
-        <h3 className="text-lg font-semibold text-gray-200 mb-4">Módulos e Grupos</h3>
-        <div className="space-y-4">
-          {selections.map((selection, index) => {
-            const moduleOptions = availableModules.filter(
-              mod => !selectedModules.includes(mod) || mod === selection.modulo
-            ).sort();
-            
-            const groupOptions = getUniqueGroupsForModule(periodo, selection.modulo, allAulas);
-            const isLastSelection = index === selections.length - 1;
+        <div>
+          <h3 className="text-lg font-semibold text-gray-200 mb-4">Módulos e Grupos</h3>
+          <div className="space-y-4">
+            {selections.map((selection, index) => {
+              const moduleOptions = availableModules.filter(
+                mod => !selectedModules.includes(mod) || mod === selection.modulo
+              ).sort();
+              
+              const groupOptions = getUniqueGroupsForModule(periodo, selection.modulo, allAulas);
+              const isLastSelection = index === selections.length - 1;
 
-            return (
-              <div key={selection.id} className="flex flex-col md:flex-row md:items-end gap-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                <div className="w-full md:flex-1">
-                  <SelectInput
-                    id={`modulo-${selection.id}`}
-                    label={`Módulo ${index + 1}`}
-                    value={selection.modulo}
-                    onChange={(e) => updateSelection(selection.id, 'modulo', e.target.value)}
-                    options={moduleOptions}
-                    disabled={availableModules.length === 0}
-                  />
-                </div>
-                <div className="w-full md:flex-1">
-                  <SelectInput
-                    id={`grupo-${selection.id}`}
-                    label={`Grupo ${index + 1}`}
-                    value={selection.grupo}
-                    onChange={(e) => updateSelection(selection.id, 'grupo', e.target.value)}
-                    options={groupOptions}
-                    disabled={!selection.modulo || groupOptions.length === 0}
-                  />
-                </div>
-                <div className="w-full md:w-auto">
-                  <div className="flex gap-2">
-                    {selections.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeSelection(selection.id)}
-                        className="bg-afya-pink text-white font-semibold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-colors duration-200"
-                        aria-label={`Remover seleção ${index + 1}`}
-                      >
-                        Remover
-                      </button>
-                    )}
-                    {isLastSelection && (
-                       <button
-                        type="button"
-                        onClick={addSelection}
-                        disabled={selectedModules.length >= availableModules.length}
-                        className="bg-gray-700 border border-gray-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        + Módulo
-                      </button>
-                    )}
+              return (
+                <div key={selection.id} className="p-4 bg-gray-900 rounded-lg border border-slate-700 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <SelectInput
+                      id={`modulo-${selection.id}`}
+                      label="Módulo"
+                      value={selection.modulo}
+                      onChange={(e) => updateSelection(selection.id, 'modulo', e.target.value)}
+                      options={moduleOptions}
+                      disabled={availableModules.length === 0}
+                    />
+                    <SelectInput
+                      id={`grupo-${selection.id}`}
+                      label="Grupo"
+                      value={selection.grupo}
+                      onChange={(e) => updateSelection(selection.id, 'grupo', e.target.value)}
+                      options={groupOptions}
+                      disabled={!selection.modulo || groupOptions.length === 0}
+                    />
                   </div>
+                  <div className="flex gap-2 justify-end">
+                      {selections.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSelection(selection.id)}
+                          className="bg-afya-pink text-white font-semibold py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-afya-pink"
+                          aria-label={`Remover seleção ${index + 1}`}
+                        >
+                          Remover
+                        </button>
+                      )}
+                      {isLastSelection && (
+                         <button
+                          type="button"
+                          onClick={addSelection}
+                          disabled={selectedModules.length >= availableModules.length}
+                          className="bg-slate-700 text-gray-300 font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-slate-500"
+                        >
+                          + Módulo
+                        </button>
+                      )}
+                    </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {availableEletivas.length > 0 && (
-          <>
-            <hr className="my-6 border-gray-700" />
+          <div>
             <h3 className="text-lg font-semibold text-gray-200 mb-4">Disciplinas Eletivas (Opcional)</h3>
 
-            <div className="flex items-end gap-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+            <div className="flex items-end gap-4 p-4 bg-gray-900 rounded-lg border border-slate-700">
                 <div className="flex-grow">
                     <SelectInput
                         id="eletiva-select"
@@ -183,12 +178,11 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
                     />
                 </div>
                 <div>
-                    <label className="mb-2 hidden md:block text-sm font-medium text-transparent select-none">&nbsp;</label>
                     <button
                         type="button"
                         onClick={addEletiva}
                         disabled={!eletivaToAdd}
-                        className="w-full bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-slate-700 text-gray-300 font-semibold py-3 px-4 rounded-lg hover:bg-slate-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-slate-500"
                         aria-label="Adicionar disciplina eletiva"
                     >
                         Adicionar
@@ -197,16 +191,16 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
             </div>
 
             {selectedEletivas.length > 0 && (
-                <div className="mt-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                    <h4 className="text-sm font-medium text-gray-300 mb-3">Eletivas selecionadas:</h4>
+                <div className="mt-4 p-4 bg-gray-900 rounded-lg border border-slate-700">
+                    <h4 className="text-sm font-medium text-gray-400 mb-3">Eletivas selecionadas:</h4>
                     <div className="flex flex-wrap gap-2">
                     {selectedEletivas.map(eletiva => (
-                        <div key={eletiva} className="flex items-center gap-2 bg-afya-blue/80 text-white text-sm font-medium pl-3 pr-2 py-1 rounded-full animate-fade-in" style={{ animationDuration: '0.3s' }}>
+                        <div key={eletiva} className="flex items-center gap-2 bg-slate-700 text-gray-300 text-sm font-medium pl-3 pr-2 py-1 rounded-full animate-fade-in" style={{ animationDuration: '0.3s' }}>
                         <span>{eletiva}</span>
                         <button
                             type="button"
                             onClick={() => removeEletiva(eletiva)}
-                            className="text-blue-200 hover:text-white hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                            className="text-gray-400 hover:text-white hover:bg-white/10 rounded-full p-0.5 transition-colors"
                             aria-label={`Remover ${eletiva}`}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -218,14 +212,14 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({
                     </div>
                 </div>
             )}
-          </>
+          </div>
         )}
         
-        <div className="mt-8">
+        <div className="mt-2">
             <button
               type="submit"
               disabled={isLoading || selections.some(s => !s.modulo || !s.grupo)}
-              className="w-full flex justify-center items-center bg-afya-blue text-white font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-afya-blue transition-all duration-200 ease-in-out disabled:bg-gray-600 disabled:cursor-not-allowed shadow-lg"
+              className="w-full flex justify-center items-center bg-afya-blue text-white font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-afya-blue transition-all duration-200 ease-in-out disabled:bg-slate-600 disabled:text-gray-400 disabled:cursor-not-allowed shadow-lg"
             >
               {isLoading ? 'Buscando...' : 'Buscar Cronograma'}
             </button>

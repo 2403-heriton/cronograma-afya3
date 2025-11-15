@@ -1,5 +1,6 @@
 
 export interface Aula {
+  isFreeSlot?: boolean;
   horario: string;
   disciplina: string;
   sala: string;
