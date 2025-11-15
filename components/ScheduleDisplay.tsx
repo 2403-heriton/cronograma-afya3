@@ -48,7 +48,7 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
           {aula.disciplina}
         </h4>
         {aula.modulo === 'Eletiva' && (
-          <span className="bg-afya-pink text-white text-xs font-bold px-3 py-1 rounded-full shrink-0 tracking-wider shadow-sm">
+          <span className="bg-afya-pink text-white text-xs font-bold px-3 py-1 rounded-full shrink-0 tracking-wider shadow-sm eletiva-tag">
             ELETIVA
           </span>
         )}
@@ -133,9 +133,11 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
   
     setIsGeneratingPdf(true);
   
+    // 1. Create a container for rendering, but without watermarks in the HTML
     const pdfContainer = document.createElement('div');
     pdfContainer.className = 'pdf-export-container';
     
+    // Create header
     const header = document.createElement('div');
     header.className = 'pdf-header';
     
@@ -165,80 +167,60 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
 
     document.body.appendChild(pdfContainer);
 
-    // Lógica para adicionar marca d'água por página simulada no HTML
-    const A3_ASPECT_RATIO = 297 / 420; // height / width for landscape
-    const contentWidth = pdfContainer.offsetWidth;
-    const pageHeightInPx = contentWidth * A3_ASPECT_RATIO;
-    const totalHeight = pdfContainer.scrollHeight;
-    const numPages = Math.ceil(totalHeight / pageHeightInPx);
+    // Give the browser a moment to render the content before capturing
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-    for (let i = 0; i < numPages; i++) {
-        // Cria um wrapper para cada marca d'água que tem o tamanho de uma página
-        const watermarkWrapper = document.createElement('div');
-        watermarkWrapper.style.position = 'absolute';
-        watermarkWrapper.style.top = `${i * pageHeightInPx}px`;
-        watermarkWrapper.style.left = '0';
-        watermarkWrapper.style.width = '100%';
-        watermarkWrapper.style.height = `${pageHeightInPx}px`;
-        watermarkWrapper.style.overflow = 'hidden';
-        watermarkWrapper.style.zIndex = '0';
+    try {
+      const { jsPDF } = window.jspdf;
+      const watermarkSrc = 'https://cdn.prod.website-files.com/65e07e5b264deb36f6e003d9/6883f05c26e613e478e32cd9_A.png';
 
-        const watermark = document.createElement('img');
-        watermark.src = 'https://cdn.prod.website-files.com/65e07e5b264deb36f6e003d9/6883f05c26e613e478e32cd9_A.png';
-        watermark.alt = "Marca d'água Afya";
-        watermark.className = 'pdf-watermark'; // A classe CSS fará o resto
-        
-        watermarkWrapper.appendChild(watermark);
-        // Insere o wrapper no container principal
-        pdfContainer.insertBefore(watermarkWrapper, pdfContainer.firstChild);
-    }
+      const canvas = await html2canvas(pdfContainer, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
 
-    requestAnimationFrame(async () => {
-      try {
-        const { jsPDF } = window.jspdf;
-        const canvas = await html2canvas(pdfContainer, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff'
-        });
-        const imgData = canvas.toDataURL('image/png');
+      const contentImgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a3',
+      });
 
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'mm',
-          format: 'a3',
-        });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgProps = pdf.getImageProperties(contentImgData);
+      const contentHeightInPdfUnits = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      let heightLeft = contentHeightInPdfUnits;
+      let position = 0;
 
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const imgProps = pdf.getImageProperties(imgData);
-        const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        
-        let heightLeft = imgHeight;
-        let position = 0;
+      // Add first page
+      pdf.addImage(watermarkSrc, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      pdf.addImage(contentImgData, 'PNG', 0, position, pdfWidth, contentHeightInPdfUnits, undefined, 'FAST');
+      heightLeft -= pdfHeight;
 
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      // Add subsequent pages if content is taller than one page
+      while (heightLeft > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(watermarkSrc, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        pdf.addImage(contentImgData, 'PNG', 0, position, pdfWidth, contentHeightInPdfUnits, undefined, 'FAST');
         heightLeft -= pdfHeight;
-
-        while (heightLeft > 0) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-          heightLeft -= pdfHeight;
-        }
-
-        const pdfUrl = pdf.output('bloburl');
-        window.open(pdfUrl, '_blank');
-
-      } catch (e) {
-        console.error('Erro ao gerar o PDF:', e);
-        alert('Ocorreu um erro ao gerar o PDF. Tente novamente.');
-      } finally {
-        document.body.removeChild(pdfContainer);
-        setIsGeneratingPdf(false);
       }
-    });
+
+      const pdfUrl = pdf.output('bloburl');
+      window.open(pdfUrl, '_blank');
+
+    } catch (e) {
+      console.error('Erro ao gerar o PDF:', e);
+      alert('Ocorreu um erro ao gerar o PDF. Tente novamente.');
+    } finally {
+      document.body.removeChild(pdfContainer);
+      setIsGeneratingPdf(false);
+    }
   };
   
   const hasClasses = schedule && schedule.some(dia => dia.aulas.some(aula => !aula.isFreeSlot));
