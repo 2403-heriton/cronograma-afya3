@@ -249,12 +249,6 @@ const App: React.FC = () => {
     setAllAulas(data.aulasData);
     setAllEvents(data.eventsData);
     setAllEletivas(data.eletivasData);
-    
-    // Recarrega as eletivas disponíveis com base nos novos dados
-    const newEletivas = getUniqueEletivas(data.eletivasData);
-    setAvailableEletivas(newEletivas);
-    setSelectedEletivas([]); // Limpa as eletivas selecionadas anteriormente
-
     // Força a recarga dos dados e re-renderização
     setPeriodo(''); // Reseta para acionar o useEffect de período
     setTimeout(() => {
@@ -332,7 +326,7 @@ const App: React.FC = () => {
               selections={selections}
             />
           ) : (
-            <EventDisplay events={events} />
+            <EventDisplay events={events} periodo={periodo} />
           )}
       </Suspense>
     );

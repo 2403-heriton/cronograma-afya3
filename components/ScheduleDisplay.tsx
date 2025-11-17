@@ -12,18 +12,7 @@ import BookIcon from './icons/BookIcon';
 import SpinnerIcon from './icons/SpinnerIcon';
 import { stringToColor } from '../services/colorService';
 
-// FIX: Declare global types for jspdf and html2canvas to resolve TypeScript errors for properties on the window object.
-declare global {
-  interface Window {
-    jspdf: {
-      jsPDF: new (options?: any) => any;
-    };
-  }
-  const html2canvas: (
-    element: HTMLElement,
-    options?: any
-  ) => Promise<HTMLCanvasElement>;
-}
+// FIX: Removed redeclared global types for jspdf and html2canvas. These are now defined in types.ts.
 
 // Componente de helper para exibir uma linha de informação com ícone
 const AulaInfo: React.FC<{ icon: React.ReactNode; label: string; text: string }> = ({ icon, label, text }) => (
@@ -48,7 +37,7 @@ const AulaCard: React.FC<{ aula: Aula }> = ({ aula }) => {
           {aula.disciplina}
         </h4>
         {aula.modulo === 'Eletiva' && (
-          <span className="bg-afya-pink text-white text-xs font-bold px-3 py-1 rounded-full shrink-0 tracking-wider shadow-sm eletiva-tag">
+          <span className="bg-purple-900/50 text-purple-300 text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0">
             ELETIVA
           </span>
         )}
@@ -133,11 +122,18 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
   
     setIsGeneratingPdf(true);
   
-    // 1. Create a container for rendering
+    // 1. Cria um contêiner invisível para o conteúdo do PDF.
     const pdfContainer = document.createElement('div');
     pdfContainer.className = 'pdf-export-container';
     
-    // Create header
+    // Adiciona a marca d'água
+    const watermark = document.createElement('img');
+    watermark.src = 'https://cdn.prod.website-files.com/65e07e5b264deb36f6e003d9/6883f05c26e613e478e32cd9_A.png';
+    watermark.alt = "Marca d'água Afya";
+    watermark.className = 'pdf-watermark';
+    pdfContainer.appendChild(watermark);
+
+    // 2. Cria e adiciona o cabeçalho do PDF.
     const header = document.createElement('div');
     header.className = 'pdf-header';
     
@@ -152,72 +148,76 @@ const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({ schedule, periodo, se
     header.appendChild(title);
     pdfContainer.appendChild(header);
     
+    // 3. Adiciona o título contextual com o período.
     const scheduleTitle = document.createElement('h2');
     scheduleTitle.className = 'pdf-title';
     scheduleTitle.textContent = `Cronograma para ${periodo}`;
     pdfContainer.appendChild(scheduleTitle);
 
+
+    // 4. Clona o conteúdo do cronograma e o prepara para exportação.
     const contentClone = scheduleContent.cloneNode(true) as HTMLElement;
-    contentClone.removeAttribute('id');
+    contentClone.removeAttribute('id'); // Remove o ID para evitar duplicatas
     const grid = contentClone.querySelector('.grid');
     if (grid) {
       grid.className = 'pdf-export-grid';
     }
     pdfContainer.appendChild(contentClone);
 
+    // 5. Anexa o contêiner preparado ao corpo do documento.
     document.body.appendChild(pdfContainer);
 
-    // Give the browser a moment to render the content before capturing
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // 6. Aguarda o próximo frame para garantir que o navegador renderizou o conteúdo clonado.
+    requestAnimationFrame(async () => {
+      try {
+        const { jsPDF } = window.jspdf;
+        // Renderiza o contêiner invisível em uma imagem canvas.
+        const canvas = await html2canvas(pdfContainer, {
+          scale: 2, // Aumenta a resolução para melhor qualidade de impressão
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+        const imgData = canvas.toDataURL('image/png');
 
-    try {
-      const { jsPDF } = window.jspdf;
+        // Cria o PDF. A3 (420x297mm) em paisagem.
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a3',
+        });
 
-      const canvas = await html2canvas(pdfContainer, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        let heightLeft = imgHeight;
+        let position = 0;
 
-      const contentImgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a3',
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgProps = pdf.getImageProperties(contentImgData);
-      const contentHeightInPdfUnits = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      let heightLeft = contentHeightInPdfUnits;
-      let position = 0;
-
-      // Add first page
-      pdf.addImage(contentImgData, 'PNG', 0, position, pdfWidth, contentHeightInPdfUnits, undefined, 'FAST');
-      heightLeft -= pdfHeight;
-
-      // Add subsequent pages if content is taller than one page
-      while (heightLeft > 0) {
-        position -= pdfHeight;
-        pdf.addPage();
-        pdf.addImage(contentImgData, 'PNG', 0, position, pdfWidth, contentHeightInPdfUnits, undefined, 'FAST');
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
         heightLeft -= pdfHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+
+        // Abre o PDF em uma nova aba ao invés de baixar.
+        const pdfUrl = pdf.output('bloburl');
+        window.open(pdfUrl, '_blank');
+
+      } catch (e) {
+        console.error('Erro ao gerar o PDF:', e);
+        alert('Ocorreu um erro ao gerar o PDF. Tente novamente.');
+      } finally {
+        // 7. Remove o contêiner temporário do corpo do documento.
+        document.body.removeChild(pdfContainer);
+        setIsGeneratingPdf(false);
       }
-
-      const pdfUrl = pdf.output('bloburl');
-      window.open(pdfUrl, '_blank');
-
-    } catch (e) {
-      console.error('Erro ao gerar o PDF:', e);
-      alert('Ocorreu um erro ao gerar o PDF. Tente novamente.');
-    } finally {
-      document.body.removeChild(pdfContainer);
-      setIsGeneratingPdf(false);
-    }
+    });
   };
   
   const hasClasses = schedule && schedule.some(dia => dia.aulas.some(aula => !aula.isFreeSlot));

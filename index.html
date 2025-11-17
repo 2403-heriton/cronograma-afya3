@@ -46,20 +46,30 @@
         left: -9999px;
         top: 0;
         background: white !important;
-        padding: 48px !important; 
-        width: 1720px !important; 
-        color: #1f2937; 
+        padding: 48px !important; /* Increased padding for better margins */
+        width: 1720px !important; /* Increased width for A3 landscape to prevent overlap */
+        color: #1f2937; /* text-gray-800 */
+      }
+
+      .pdf-watermark {
+        position: absolute;
+        right: 48px; /* Match container padding */
+        top: 50%;
+        transform: translateY(-50%);
+        height: 100%;
+        opacity: 0.05;
+        z-index: 0;
       }
 
       .pdf-header {
         position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem; 
-        border-bottom: 1px solid #e5e7eb; 
+        z-index: 1; /* Ensure header is above watermark */
+        text-align: center;
+        margin-bottom: 2rem; /* mb-8 */
+        padding-bottom: 1rem; /* pb-4 */
+        border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
         padding-top: 1rem;
+        padding-bottom: 1rem;
       }
 
       .pdf-header .pdf-logo {
@@ -71,90 +81,113 @@
       }
 
       .pdf-header h1 {
-        font-size: 1.875rem; 
-        font-weight: 700;   
+        font-size: 1.875rem; /* text-3xl */
+        font-weight: 700;   /* font-bold */
         color: #CE0058;
       }
       
       .pdf-title {
+        position: relative;
+        z-index: 1; /* Ensure title is above watermark */
         text-align: center;
         margin-bottom: 2rem;
         font-size: 1.25rem;
         font-weight: 500;
-        color: #4b5563; 
+        color: #4b5563; /* text-gray-600 */
       }
 
       .pdf-export-grid {
+        position: relative;
+        z-index: 1; /* Ensure grid is above watermark */
         display: grid !important;
         grid-template-columns: repeat(5, 1fr) !important;
-        gap: 2rem !important; 
+        gap: 2rem !important; /* Increased gap for better spacing */
         width: 100%;
       }
-      
+      /* Ensure animations are off for the clone and try to prevent page breaks inside cards */
       .pdf-export-container .animate-fade-in {
         animation: none !important;
         opacity: 1 !important;
+        break-inside: avoid;
+        page-break-inside: avoid; /* older property for compatibility */
       }
 
       .pdf-export-container .dia-card {
         background-color: transparent !important;
-        border-color: #d1d5db !important; 
+        border-color: #d1d5db !important; /* border-gray-300 */
         box-shadow: none !important;
-        break-inside: avoid !important;
-        page-break-inside: avoid !important;
-      }
-
-      .pdf-export-container .dia-card h3 {
-        font-size: 1.25rem !important;
-        text-align: center !important;
       }
 
       .pdf-export-container .aula-card {
         background-color: transparent !important;
-        border-color: #d1d5db; 
-        color: #1f2937 !important; 
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
-      .pdf-export-container .eletiva-tag {
-        background-color: #CE0058 !important;
-        color: white !important;
+        border-color: #d1d5db; /* border-gray-300 */
+        color: #1f2937 !important; /* text-gray-800 */
       }
 
       .pdf-export-container .aula-card .text-gray-100,
       .pdf-export-container .aula-card .text-gray-200,
       .pdf-export-container .aula-card .font-semibold,
       .pdf-export-container .aula-card h4 {
-        color: #1f2937 !important; 
+        color: #1f2937 !important; /* text-gray-800 */
       }
-
-      .pdf-export-container .aula-card h4 {
-        font-size: 0.875rem !important; 
-        line-height: 1.25rem !important;
-      }
-
       .pdf-export-container .aula-card .text-gray-400 {
-        color: #4b5563 !important; 
+        color: #4b5563 !important; /* text-gray-600 */
       }
       .pdf-export-container .aula-card .border-slate-700 {
-        border-color: #e5e7eb !important; 
+        border-color: #e5e7eb !important; /* border-gray-200 */
       }
        .pdf-export-container .aula-card .bg-amber-900\/30 {
-         background-color: #fef3c7 !important; 
+         background-color: #fef3c7 !important; /* bg-amber-100 */
       }
       .pdf-export-container .aula-card .text-amber-300,
       .pdf-export-container .aula-card .text-amber-400 {
-        color: #b45309 !important; 
+        color: #b45309 !important; /* text-amber-700 */
       }
 
       .pdf-export-container .free-slot-card {
-        background-color: #f0fdf4 !important; 
-        border-color: #a7f3d0 !important; 
-        color: #065f46 !important; 
-        break-inside: avoid;
-        page--inside: avoid;
+        background-color: #f0fdf4 !important; /* bg-green-50 */
+        border-color: #a7f3d0 !important; /* border-green-200 */
+        color: #065f46 !important; /* text-green-800 */
       }
+
+      /* PDF Export Styles for Events */
+      .pdf-export-container .event-month-group-pdf {
+        margin-bottom: 2.5rem;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .pdf-export-container .event-month-group-pdf h3 {
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        color: #CE0058 !important;
+        margin-bottom: 1.5rem !important;
+        padding-left: 0.75rem !important;
+        border-left: 4px solid #CE0058 !important;
+        background: transparent !important;
+        text-align: left !important;
+      }
+      .pdf-export-event-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 2rem !important;
+      }
+      .pdf-export-container .event-card-pdf {
+        background-color: transparent !important;
+        border-color: #d1d5db !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+      .pdf-export-container .event-card-pdf .text-gray-100 {
+        color: #1f2937 !important;
+      }
+      .pdf-export-container .event-card-pdf .text-gray-200,
+      .pdf-export-container .event-card-pdf .font-medium {
+        color: #374151 !important;
+      }
+      .pdf-export-container .event-card-pdf .text-gray-400 {
+        color: #4b5563 !important;
+      }
+
 
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
